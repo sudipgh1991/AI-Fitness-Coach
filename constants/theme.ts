@@ -1,8 +1,8 @@
 // Theme colors and configuration
 export const Colors = {
   light: {
-    primary: '#6C63FF',
-    secondary: '#FF6584',
+    primary: '#DC2626',
+    secondary: '#EF4444',
     background: '#FFFFFF',
     card: '#F8F9FA',
     text: '#212529',
@@ -10,14 +10,14 @@ export const Colors = {
     border: '#DEE2E6',
     success: '#10B981',
     warning: '#F59E0B',
-    error: '#EF4444',
+    error: '#DC2626',
     info: '#3B82F6',
     tabBar: '#FFFFFF',
     tabBarInactive: '#9CA3AF',
   },
   dark: {
-    primary: '#8B7FFF',
-    secondary: '#FF7B98',
+    primary: '#EF4444',
+    secondary: '#F87171',
     background: '#121212',
     card: '#1E1E1E',
     text: '#FFFFFF',
@@ -25,7 +25,7 @@ export const Colors = {
     border: '#2C2C2C',
     success: '#34D399',
     warning: '#FBBF24',
-    error: '#F87171',
+    error: '#EF4444',
     info: '#60A5FA',
     tabBar: '#1E1E1E',
     tabBarInactive: '#6B7280',

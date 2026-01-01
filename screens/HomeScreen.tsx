@@ -193,38 +193,51 @@ export default function HomeScreen({ navigation }: any) {
         </Card>
 
         {/* Quick Actions */}
-        <Card title="Quick Actions">
+        <View style={styles.quickActionsSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary }]}
               onPress={() => navigation.navigate('WorkoutLog')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="barbell" size={28} color="#FFF" />
+              <View style={styles.iconCircle}>
+                <Ionicons name="barbell" size={28} color="#FFF" />
+              </View>
               <Text style={styles.actionText}>Log Workout</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.secondary }]}
               onPress={() => navigation.navigate('MealLog')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="restaurant" size={28} color="#FFF" />
+              <View style={styles.iconCircle}>
+                <Ionicons name="restaurant" size={28} color="#FFF" />
+              </View>
               <Text style={styles.actionText}>Log Meal</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.success }]}
               onPress={() => navigation.navigate('Chat')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="chatbubbles" size={28} color="#FFF" />
+              <View style={styles.iconCircle}>
+                <Ionicons name="chatbubbles" size={28} color="#FFF" />
+              </View>
               <Text style={styles.actionText}>AI Coach</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.info }]}
               onPress={() => navigation.navigate('Goals')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="trophy" size={28} color="#FFF" />
+              <View style={styles.iconCircle}>
+                <Ionicons name="trophy" size={28} color="#FFF" />
+              </View>
               <Text style={styles.actionText}>My Goals</Text>
             </TouchableOpacity>
           </View>
-        </Card>
+        </View>
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
@@ -314,28 +327,47 @@ const styles = StyleSheet.create({
     marginVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
+  quickActionsSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: FontSizes.xl,
+    fontWeight: '800',
+    marginBottom: Spacing.lg,
+    letterSpacing: 0.5,
+  },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: Spacing.md,
   },
   actionButton: {
-    flex: 1,
-    minWidth: '45%',
-    aspectRatio: 1,
-    borderRadius: BorderRadius.lg,
+    width: '47.5%',
+    paddingVertical: Spacing.xl,
+    borderRadius: BorderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
   actionText: {
     color: '#FFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    marginTop: Spacing.sm,
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });
