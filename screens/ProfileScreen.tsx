@@ -33,7 +33,8 @@ export default function ProfileScreen({ navigation }: any) {
           style: 'destructive',
           onPress: async () => {
             await logout();
-            navigation.replace('Login');
+            // Navigation will automatically switch to Login screen
+            // via AuthContext changing isAuthenticated to false
           },
         },
       ]

@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useTheme } from '../contexts/ThemeContext';
@@ -81,75 +83,81 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Ionicons name="fitness" size={64} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.text }]}>AI Coach</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Your Personal Fitness Assistant
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          <InputField
-            label="Phone Number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholder="Enter your phone number"
-            keyboardType="phone-pad"
-            icon="call"
-          />
-
-          <Button
-            title="Send OTP"
-            onPress={handleSendOTP}
-            loading={isLoading}
-            fullWidth
-          />
-
-          <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <StatusBar style={colors.background === '#FFFFFF' ? 'dark' : 'light'} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Ionicons name="fitness" size={64} color={colors.primary} />
+            <Text style={[styles.title, { color: colors.text }]}>AI Coach</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Your Personal Fitness Assistant
+            </Text>
           </View>
 
-          <TouchableOpacity
-            style={[styles.socialButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={handleGoogleSignIn}
-          >
-            <Ionicons name="logo-google" size={24} color="#DB4437" />
-            <Text style={[styles.socialButtonText, { color: colors.text }]}>
-              Continue with Google
-            </Text>
-          </TouchableOpacity>
-
-          {Platform.OS === 'ios' && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={8}
-              style={styles.appleButton}
-              onPress={handleAppleSignIn}
+          <View style={styles.form}>
+            <InputField
+              label="Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Enter your phone number"
+              keyboardType="phone-pad"
+              icon="call"
             />
-          )}
-        </View>
 
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            By continuing, you agree to our Terms of Service and Privacy Policy
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <Button
+              title="Send OTP"
+              onPress={handleSendOTP}
+              loading={isLoading}
+              fullWidth
+            />
+
+            <View style={styles.divider}>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.socialButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleGoogleSignIn}
+            >
+              <Ionicons name="logo-google" size={24} color="#DB4437" />
+              <Text style={[styles.socialButtonText, { color: colors.text }]}>
+                Continue with Google
+              </Text>
+            </TouchableOpacity>
+
+            {Platform.OS === 'ios' && (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={8}
+                style={styles.appleButton}
+                onPress={handleAppleSignIn}
+              />
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  keyboardView: {
     flex: 1,
   },
   scrollContent: {

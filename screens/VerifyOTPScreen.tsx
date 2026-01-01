@@ -7,6 +7,8 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
@@ -86,63 +88,69 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Verify OTP</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Enter the 6-digit code sent to{'\n'}
-        {phoneNumber}
-      </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <StatusBar style={colors.background === '#FFFFFF' ? 'dark' : 'light'} />
+      <View style={styles.content}>
+        <Text style={[styles.title, { color: colors.text }]}>Verify OTP</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Enter the 6-digit code sent to{'\n'}
+          {phoneNumber}
+        </Text>
 
-      <View style={styles.otpContainer}>
-        {otp.map((digit, index) => (
-          <TextInput
-            key={index}
-            ref={(ref) => (inputRefs.current[index] = ref)}
-            style={[
-              styles.otpInput,
-              {
-                backgroundColor: colors.card,
-                borderColor: digit ? colors.primary : colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={digit}
-            onChangeText={(text) => handleOtpChange(text, index)}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-            keyboardType="number-pad"
-            maxLength={1}
-            selectTextOnFocus
-          />
-        ))}
-      </View>
+        <View style={styles.otpContainer}>
+          {otp.map((digit, index) => (
+            <TextInput
+              key={index}
+              ref={(ref) => { inputRefs.current[index] = ref; }}
+              style={[
+                styles.otpInput,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: digit ? colors.primary : colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={digit}
+              onChangeText={(text) => handleOtpChange(text, index)}
+              onKeyPress={(e) => handleKeyPress(e, index)}
+              keyboardType="number-pad"
+              maxLength={1}
+              selectTextOnFocus
+            />
+          ))}
+        </View>
 
-      <Button
-        title="Verify OTP"
-        onPress={handleVerifyOTP}
-        loading={isLoading}
-        fullWidth
-        disabled={otp.join('').length !== 6}
-      />
+        <Button
+          title="Verify OTP"
+          onPress={handleVerifyOTP}
+          loading={isLoading}
+          fullWidth
+          disabled={otp.join('').length !== 6}
+        />
 
-      <View style={styles.resendContainer}>
-        {timer > 0 ? (
-          <Text style={[styles.timerText, { color: colors.textSecondary }]}>
-            Resend OTP in {timer}s
-          </Text>
-        ) : (
-          <TouchableOpacity onPress={handleResendOTP}>
-            <Text style={[styles.resendText, { color: colors.primary }]}>
-              Resend OTP
+        <View style={styles.resendContainer}>
+          {timer > 0 ? (
+            <Text style={[styles.timerText, { color: colors.textSecondary }]}>
+              Resend OTP in {timer}s
             </Text>
-          </TouchableOpacity>
-        )}
+          ) : (
+            <TouchableOpacity onPress={handleResendOTP}>
+              <Text style={[styles.resendText, { color: colors.primary }]}>
+                Resend OTP
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
     padding: Spacing.lg,
     justifyContent: 'center',
