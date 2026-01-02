@@ -69,9 +69,9 @@ export default function MainNavigator() {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom + 8 : (Platform.OS === 'ios' ? insets.bottom : 8),
           paddingTop: 8,
-          height: Platform.OS === 'ios' ? 60 + insets.bottom : 60,
+          height: Platform.OS === 'android' ? 60 + insets.bottom : (Platform.OS === 'ios' ? 60 + insets.bottom : 60),
         },
         tabBarLabelStyle: {
           fontSize: 12,
