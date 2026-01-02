@@ -146,44 +146,67 @@ export default function SelfAssessmentScreen({ navigation }: any) {
     options: string[],
     field: string,
     required: boolean = false
-  ) => (
-    <View style={styles.formGroup}>
-      <Text style={[styles.label, { color: colors.text }]}>
-        {label}
-        {required && <Text style={styles.required}> *</Text>}
-      </Text>
-      <View style={styles.radioGroup}>
-        {options.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.radioButton,
-              {
-                backgroundColor: formData[field as keyof typeof formData] === option ? colors.primary : colors.card,
-                borderColor: errors[field] ? colors.error : colors.border,
-              },
-            ]}
-            onPress={() => {
-              setFormData({ ...formData, [field]: option });
-              if (errors[field]) setErrors({ ...errors, [field]: '' });
-            }}
-          >
-            <Text
-              style={[
-                styles.radioText,
-                {
-                  color: formData[field as keyof typeof formData] === option ? '#FFFFFF' : colors.text,
-                },
-              ]}
-            >
-              {option}
-            </Text>
-          </TouchableOpacity>
-        ))}
+  ) => {
+    const isSelected = (option: string) => formData[field as keyof typeof formData] === option;
+    
+    return (
+      <View style={styles.formGroup}>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
+        </Text>
+        <View style={styles.radioGroup}>
+          {options.map((option) => {
+            const selected = isSelected(option);
+            return (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.radioButton,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: selected ? colors.primary : (errors[field] ? colors.error : colors.border),
+                    borderWidth: selected ? 2 : 1,
+                  },
+                ]}
+                onPress={() => {
+                  setFormData({ ...formData, [field]: option });
+                  if (errors[field]) setErrors({ ...errors, [field]: '' });
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.radioContent}>
+                  <View style={[
+                    styles.radioCircle,
+                    { borderColor: selected ? colors.primary : colors.border }
+                  ]}>
+                    {selected && (
+                      <View style={[styles.radioCircleInner, { backgroundColor: colors.primary }]} />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.radioText,
+                      {
+                        color: selected ? colors.primary : colors.text,
+                        fontWeight: selected ? '600' : '500',
+                      },
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                  {selected && (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary} style={styles.checkmark} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {errors[field] && <Text style={[styles.errorText, { color: colors.error }]}>{errors[field]}</Text>}
       </View>
-      {errors[field] && <Text style={[styles.errorText, { color: colors.error }]}>{errors[field]}</Text>}
-    </View>
-  );
+    );
+  };
 
   const renderYesNoSwitch = (
     label: string,
@@ -401,17 +424,41 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   radioGroup: {
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   radioButton: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  radioContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  radioCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   radioText: {
     fontSize: FontSizes.md,
-    fontWeight: '500',
+    flex: 1,
+  },
+  checkmark: {
+    marginLeft: 'auto',
   },
   switchContainer: {
     flexDirection: 'row',

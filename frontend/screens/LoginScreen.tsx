@@ -99,7 +99,7 @@ export default function LoginScreen({ navigation }: any) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Ionicons name="fitness" size={64} color={colors.primary} />
-            <Text style={[styles.title, { color: colors.text }]}>AI Coach</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Fitzen</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Your Personal Fitness Assistant
             </Text>

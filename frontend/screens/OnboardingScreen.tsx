@@ -22,6 +22,8 @@ export default function OnboardingScreen({ navigation }: any) {
   const [step, setStep] = useState(1);
   const [onboardingType, setOnboardingType] = useState<'call' | 'form' | null>(null);
   
+  console.log('OnboardingScreen rendered - step:', step);
+  
   // Form data
   const [formData, setFormData] = useState({
     age: '',
@@ -53,67 +55,70 @@ export default function OnboardingScreen({ navigation }: any) {
     }
   };
 
-  const renderWelcomeStep = () => (
-    <View style={styles.stepContainer}>
-      <Ionicons name="fitness" size={80} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.text }]}>Welcome to AI Coach!</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Let's personalize your fitness journey
-      </Text>
-      
-      <TouchableOpacity
-        style={styles.skipButton}
-        onPress={() => navigation.replace('Login')}
-      >
-        <Text style={[styles.skipText, { color: colors.primary }]}>
-          Already a member? Sign in
+  const renderWelcomeStep = () => {
+    console.log('Rendering welcome step');
+    return (
+      <View style={styles.stepContainer}>
+        <Ionicons name="fitness" size={80} color={colors.primary} />
+        <Text style={[styles.title, { color: colors.text }]}>Welcome to Fitzen!</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Let's personalize your fitness journey
         </Text>
-      </TouchableOpacity>
-      
-      <View style={styles.optionsContainer}>
+        
         <TouchableOpacity
-          style={[styles.optionCard, { backgroundColor: colors.card }]}
-          onPress={() => {
-            setOnboardingType('call');
-            setStep(2);
-          }}
+          style={styles.skipButton}
+          onPress={() => navigation.replace('Login')}
         >
-          <LinearGradient
-            colors={[colors.primary + '10', colors.card]}
-            style={styles.optionGradient}
-          >
-            <Ionicons name="call" size={48} color={colors.primary} />
-            <Text style={[styles.optionTitle, { color: colors.text }]}>
-              Live Consultation
-            </Text>
-            <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-              Schedule a call with our expert coaches for personalized guidance
-            </Text>
-          </LinearGradient>
+          <Text style={[styles.skipText, { color: colors.primary }]}>
+            Already a member? Sign in
+          </Text>
         </TouchableOpacity>
+        
+        <View style={styles.optionsContainer}>
+          <TouchableOpacity
+            style={[styles.optionCard, { backgroundColor: colors.card }]}
+            onPress={() => {
+              setOnboardingType('call');
+              setStep(2);
+            }}
+          >
+            <LinearGradient
+              colors={[colors.primary + '10', colors.card]}
+              style={styles.optionGradient}
+            >
+              <Ionicons name="call" size={48} color={colors.primary} />
+              <Text style={[styles.optionTitle, { color: colors.text }]}>
+                Live Consultation
+              </Text>
+              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
+                Schedule a call with our expert coaches for personalized guidance
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.optionCard, { backgroundColor: colors.card }]}
-          onPress={() => {
-            navigation.replace('SelfAssessment');
-          }}
-        >
-          <LinearGradient
-            colors={[colors.secondary + '10', colors.card]}
-            style={styles.optionGradient}
+          <TouchableOpacity
+            style={[styles.optionCard, { backgroundColor: colors.card }]}
+            onPress={() => {
+              navigation.replace('SelfAssessment');
+            }}
           >
-            <Ionicons name="clipboard" size={48} color={colors.secondary} />
-            <Text style={[styles.optionTitle, { color: colors.text }]}>
-              Self-Assessment
-            </Text>
-            <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-              Complete a detailed questionnaire at your own pace
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={[colors.secondary + '10', colors.card]}
+              style={styles.optionGradient}
+            >
+              <Ionicons name="clipboard" size={48} color={colors.secondary} />
+              <Text style={[styles.optionTitle, { color: colors.text }]}>
+                Self-Assessment
+              </Text>
+              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
+                Complete a detailed questionnaire at your own pace
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderCallBooking = () => (
     <View style={styles.stepContainer}>
@@ -349,19 +354,17 @@ export default function OnboardingScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <LinearGradient
-        colors={[colors.primary, colors.secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Get Started</Text>
           <Text style={styles.headerSubtitle}>Step {step} of 2</Text>
         </View>
-      </LinearGradient>
+      </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         {step === 1 && renderWelcomeStep()}
         {step === 2 && onboardingType === 'call' && renderCallBooking()}
         {step === 2 && onboardingType === 'form' && renderFormAssessment()}

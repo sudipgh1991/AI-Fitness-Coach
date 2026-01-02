@@ -120,7 +120,7 @@ export default function CoachSelectionScreen({ navigation }: any) {
                   { color: selectedGender === 'male' ? '#FFF' : colors.text },
                 ]}
               >
-                Male Coach
+                Sam
               </Text>
               {selectedGender === 'male' && (
                 <View style={styles.checkMark}>
@@ -149,7 +149,7 @@ export default function CoachSelectionScreen({ navigation }: any) {
                   { color: selectedGender === 'female' ? '#FFF' : colors.text },
                 ]}
               >
-                Female Coach
+                Tashi
               </Text>
               {selectedGender === 'female' && (
                 <View style={styles.checkMark}>

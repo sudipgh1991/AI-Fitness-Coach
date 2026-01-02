@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,6 +33,8 @@ export default function AppNavigator() {
       setIsCheckingOnboarding(true);
       try {
         const completed = await AsyncStorage.getItem('hasCompletedOnboarding');
+        console.log('Onboarding status:', completed);
+        console.log('Is authenticated:', isAuthenticated);
         setHasCompletedOnboarding(completed === 'true');
       } catch (error) {
         console.error('Error checking onboarding status:', error);
@@ -44,8 +47,15 @@ export default function AppNavigator() {
     checkOnboarding();
   }, [isAuthenticated]); // Re-check when auth changes
 
-  if (isLoading || isCheckingOnboarding) {
-    return null; // Or a loading screen
+  console.log('AppNavigator render - Loading:', isLoading, 'Checking:', isCheckingOnboarding, 'Onboarding:', hasCompletedOnboarding, 'Auth:', isAuthenticated);
+
+  if (isLoading || isCheckingOnboarding || hasCompletedOnboarding === null) {
+    console.log('AppNavigator: Showing loading screen');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
+        <ActivityIndicator size="large" color="#DC2626" />
+      </View>
+    );
   }
 
   // Determine which screen set to show
@@ -55,11 +65,15 @@ export default function AppNavigator() {
     return 'main';
   };
 
+  const navigationKey = getNavigationKey();
+  console.log('Navigation key:', navigationKey);
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        key={getNavigationKey()} 
+        key={navigationKey} 
         screenOptions={{ headerShown: false }}
+        initialRouteName={!hasCompletedOnboarding ? "Onboarding" : !isAuthenticated ? "Login" : "Main"}
       >
         {!hasCompletedOnboarding ? (
           // Show onboarding first (before login)
