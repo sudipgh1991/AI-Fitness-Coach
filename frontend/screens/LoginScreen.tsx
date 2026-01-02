@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
@@ -53,6 +54,9 @@ export default function LoginScreen({ navigation }: any) {
       isPremium: false,
       createdAt: new Date().toISOString(),
     };
+    
+    // Mark onboarding as complete since user is logging in
+    await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
     await login(mockUser);
   };
 
@@ -72,6 +76,9 @@ export default function LoginScreen({ navigation }: any) {
         isPremium: false,
         createdAt: new Date().toISOString(),
       };
+      
+      // Mark onboarding as complete since user is logging in
+      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
       await login(mockUser);
     } catch (e: any) {
       if (e.code === 'ERR_CANCELED') {

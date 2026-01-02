@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/Card';
@@ -35,6 +36,39 @@ export default function ProfileScreen({ navigation }: any) {
             await logout();
             // Navigation will automatically switch to Login screen
             // via AuthContext changing isAuthenticated to false
+          },
+        },
+      ]
+    );
+  };
+
+  const handleResetOnboarding = () => {
+    Alert.alert(
+      'Reset Onboarding',
+      'This will clear onboarding data and restart the app flow. You will be taken back to the onboarding screens.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // First logout to clear auth state
+              await logout();
+              
+              // Then clear onboarding data
+              await AsyncStorage.removeItem('hasCompletedOnboarding');
+              await AsyncStorage.removeItem('onboardingData');
+              await AsyncStorage.removeItem('coachGender');
+              await AsyncStorage.removeItem('coachStyle');
+              await AsyncStorage.removeItem('selfAssessmentData');
+              
+              // The app will now show onboarding screens on next render
+              // because hasCompletedOnboarding is false and isAuthenticated is false
+            } catch (error) {
+              console.error('Error resetting onboarding:', error);
+              Alert.alert('Error', 'Failed to reset onboarding');
+            }
           },
         },
       ]
@@ -130,8 +164,8 @@ export default function ProfileScreen({ navigation }: any) {
         <MenuItem
           icon="body-outline"
           title="Body Measurements"
-          subtitle="Track your progress"
-          onPress={() => {}}
+          subtitle="Track your body composition"
+          onPress={() => navigation.navigate('BodyMeasurements')}
         />
         <MenuItem
           icon="images-outline"
@@ -155,16 +189,25 @@ export default function ProfileScreen({ navigation }: any) {
           onPress={() => navigation.navigate('Home', { screen: 'Nutrition' })}
         />
         <MenuItem
-          icon="scale-outline"
-          title="Weight Tracker"
-          subtitle="Monitor weight changes"
-          onPress={() => {}}
+          icon="restaurant-outline"
+          title="Recipes"
+          subtitle="Healthy meal ideas"
+          onPress={() => navigation.navigate('Home', { screen: 'Recipes' })}
         />
         <MenuItem
-          icon="water-outline"
-          title="Water Intake"
-          subtitle="Track hydration"
-          onPress={() => {}}
+          icon="analytics-outline"
+          title="Habits & Cravings"
+          subtitle="Analyze eating patterns"
+          onPress={() => navigation.navigate('Home', { screen: 'HabitsAnalysis' })}
+        />
+
+        {/* Settings Section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
+        <MenuItem
+          icon="notifications-outline"
+          title="Reminders"
+          subtitle="Manage your notifications"
+          onPress={() => navigation.navigate('Reminders')}
         />
 
         {/* Theme Settings */}
@@ -334,6 +377,17 @@ export default function ProfileScreen({ navigation }: any) {
             title="Rate Us"
             subtitle="Share your feedback"
             onPress={() => {}}
+          />
+        </Card>
+
+        {/* Debug Section - Development Only */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Developer Options</Text>
+        <Card>
+          <MenuItem
+            icon="refresh"
+            title="Reset Onboarding"
+            subtitle="View onboarding screens again"
+            onPress={handleResetOnboarding}
           />
         </Card>
 

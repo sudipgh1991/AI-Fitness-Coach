@@ -429,36 +429,26 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary }]}
-              onPress={() => navigation.navigate('WorkoutHistory')}
+              onPress={() => navigation.navigate('WorkoutPlans')}
               activeOpacity={0.8}
             >
               <View style={styles.iconCircle}>
                 <Ionicons name="barbell" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Workouts</Text>
+              <Text style={styles.actionText}>Workout Plans</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.secondary }]}
-              onPress={() => navigation.navigate('Nutrition')}
+              onPress={() => navigation.navigate('Recipes')}
               activeOpacity={0.8}
             >
               <View style={styles.iconCircle}>
                 <Ionicons name="restaurant" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Nutrition</Text>
+              <Text style={styles.actionText}>Recipes</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.success }]}
-              onPress={() => navigation.navigate('Chat')}
-              activeOpacity={0.8}
-            >
-              <View style={styles.iconCircle}>
-                <Ionicons name="chatbubbles" size={28} color="#FFF" />
-              </View>
-              <Text style={styles.actionText}>AI Coach</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.info }]}
               onPress={() => navigation.navigate('Goals')}
               activeOpacity={0.8}
             >
@@ -466,6 +456,16 @@ export default function HomeScreen({ navigation }: any) {
                 <Ionicons name="trophy" size={28} color="#FFF" />
               </View>
               <Text style={styles.actionText}>My Goals</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.info }]}
+              onPress={() => navigation.navigate('HabitsAnalysis')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconCircle}>
+                <Ionicons name="analytics" size={28} color="#FFF" />
+              </View>
+              <Text style={styles.actionText}>Habits</Text>
             </TouchableOpacity>
           </View>
         </View>

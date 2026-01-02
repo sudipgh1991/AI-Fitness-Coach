@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
@@ -74,6 +75,8 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
         createdAt: new Date().toISOString(),
       };
       
+      // Mark onboarding as complete since user is logging in
+      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
       await login(mockUser);
       // Navigate to main app - the AuthContext will handle the switch
     }, 1500);

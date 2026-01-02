@@ -16,6 +16,13 @@ import NutritionScreen from '../screens/NutritionScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import ProgressPhotosScreen from '../screens/ProgressPhotosScreen';
 import GoalsScreen from '../screens/GoalsScreen';
+import WorkoutPlansScreen from '../screens/WorkoutPlansScreen';
+import RecipesScreen from '../screens/RecipesScreen';
+import RemindersScreen from '../screens/RemindersScreen';
+import BodyMeasurementsScreen from '../screens/BodyMeasurementsScreen';
+import HabitsAnalysisScreen from '../screens/HabitsAnalysisScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import CoachSelectionScreen from '../screens/CoachSelectionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -26,8 +33,11 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+      <Stack.Screen name="WorkoutPlans" component={WorkoutPlansScreen} />
       <Stack.Screen name="Nutrition" component={NutritionScreen} />
+      <Stack.Screen name="Recipes" component={RecipesScreen} />
       <Stack.Screen name="Goals" component={GoalsScreen} />
+      <Stack.Screen name="HabitsAnalysis" component={HabitsAnalysisScreen} />
     </Stack.Navigator>
   );
 }
@@ -39,6 +49,8 @@ function ProfileStack() {
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="Achievements" component={AchievementsScreen} />
       <Stack.Screen name="ProgressPhotos" component={ProgressPhotosScreen} />
+      <Stack.Screen name="BodyMeasurements" component={BodyMeasurementsScreen} />
+      <Stack.Screen name="Reminders" component={RemindersScreen} />
     </Stack.Navigator>
   );
 }
