@@ -119,8 +119,57 @@ export default function ProfileScreen({ navigation }: any) {
           <StatBox label="BMI" value="24.5" unit="" />
         </View>
 
+        {/* Fitness Section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Fitness</Text>
+        <MenuItem
+          icon="barbell-outline"
+          title="Workout History"
+          subtitle="View your past workouts"
+          onPress={() => navigation.navigate('Home', { screen: 'WorkoutHistory' })}
+        />
+        <MenuItem
+          icon="body-outline"
+          title="Body Measurements"
+          subtitle="Track your progress"
+          onPress={() => {}}
+        />
+        <MenuItem
+          icon="images-outline"
+          title="Progress Photos"
+          subtitle="Before and after photos"
+          onPress={() => navigation.navigate('ProgressPhotos')}
+        />
+        <MenuItem
+          icon="trophy-outline"
+          title="Achievements"
+          subtitle="Badges and milestones"
+          onPress={() => navigation.navigate('Achievements')}
+        />
+
+        {/* Nutrition Section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Nutrition</Text>
+        <MenuItem
+          icon="nutrition-outline"
+          title="Meal History"
+          subtitle="View your nutrition log"
+          onPress={() => navigation.navigate('Home', { screen: 'Nutrition' })}
+        />
+        <MenuItem
+          icon="scale-outline"
+          title="Weight Tracker"
+          subtitle="Monitor weight changes"
+          onPress={() => {}}
+        />
+        <MenuItem
+          icon="water-outline"
+          title="Water Intake"
+          subtitle="Track hydration"
+          onPress={() => {}}
+        />
+
         {/* Theme Settings */}
-        <Card title="Appearance">
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
+        <Card>
           <View style={styles.themeOptions}>
             <TouchableOpacity
               style={[
@@ -194,7 +243,8 @@ export default function ProfileScreen({ navigation }: any) {
         </Card>
 
         {/* Settings */}
-        <Card title="Settings">
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
+        <Card>
           <MenuItem
             icon="person"
             title="Edit Profile"
@@ -306,6 +356,13 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  sectionTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '800',
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   header: {
     alignItems: 'center',

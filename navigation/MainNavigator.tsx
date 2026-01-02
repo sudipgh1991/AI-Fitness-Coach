@@ -11,9 +11,35 @@ import HomeScreen from '../screens/HomeScreen';
 import SocialScreen from '../screens/SocialScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
+import NutritionScreen from '../screens/NutritionScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
+import ProgressPhotosScreen from '../screens/ProgressPhotosScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+// Home Stack Navigator
+function HomeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+      <Stack.Screen name="Nutrition" component={NutritionScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// Profile Stack Navigator
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
+      <Stack.Screen name="ProgressPhotos" component={ProgressPhotosScreen} />
+    </Stack.Navigator>
+  );
+}
 
 export default function MainNavigator() {
   const { colors } = useTheme();
@@ -41,7 +67,7 @@ export default function MainNavigator() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
@@ -68,7 +94,7 @@ export default function MainNavigator() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
