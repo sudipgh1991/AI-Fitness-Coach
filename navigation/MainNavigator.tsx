@@ -15,6 +15,7 @@ import WorkoutHistoryScreen from '../screens/WorkoutHistoryScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import ProgressPhotosScreen from '../screens/ProgressPhotosScreen';
+import GoalsScreen from '../screens/GoalsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -26,6 +27,7 @@ function HomeStack() {
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
       <Stack.Screen name="Nutrition" component={NutritionScreen} />
+      <Stack.Screen name="Goals" component={GoalsScreen} />
     </Stack.Navigator>
   );
 }
