@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +17,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { ChatMessage } from '../types';
+import { api } from '../services/api';
 
 export default function ChatScreen() {
   const { colors } = useTheme();
@@ -22,7 +25,12 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -34,8 +42,45 @@ export default function ChatScreen() {
     }, 100);
   };
 
+  const loadChatHistory = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await api.getChatHistory(user.id);
+      
+      if (response.success && response.history) {
+        // Convert backend format to frontend format
+        const formattedMessages: ChatMessage[] = response.history.map((chat: any) => ([
+          {
+            id: chat.id + '-user',
+            role: 'user',
+            content: chat.message,
+            timestamp: chat.created_at,
+          },
+          {
+            id: chat.id + '-assistant',
+            role: 'assistant',
+            content: chat.response,
+            timestamp: chat.created_at,
+          }
+        ])).flat();
+        
+        // If no history, keep initial messages
+        if (formattedMessages.length > 0) {
+          setMessages(formattedMessages);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      // Keep initial messages on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSend = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !user?.id) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -45,44 +90,53 @@ export default function ChatScreen() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputText.trim();
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = getAIResponse(userMessage.content);
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date().toISOString(),
+    try {
+      // Build user context for personalized responses
+      const userContext = {
+        name: user.name || 'User',
+        coach_gender: user.coach_gender || '',
+        coach_style: user.coach_style || '',
+        is_premium: user.is_premium || false,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-      setIsTyping(false);
-    }, 1500);
-  };
+      // Send message to backend
+      const response = await api.sendChatMessage(user.id, messageText, userContext);
 
-  const getAIResponse = (message: string): string => {
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes('workout') || lowerMessage.includes('exercise')) {
-      return "Great question about workouts! Based on your fitness goals, I recommend:\n\n💪 Strength Training (3x/week):\n- Push-ups: 3 sets of 12 reps\n- Squats: 3 sets of 15 reps\n- Planks: 3 sets of 30 seconds\n\n🏃 Cardio (2x/week):\n- Running: 30 minutes\n- HIIT: 20 minutes\n\nWould you like me to create a detailed weekly workout plan?";
+      if (response.success && response.response) {
+        const assistantMessage: ChatMessage = {
+          id: response.chat_id || (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.response,
+          timestamp: response.created_at || new Date().toISOString(),
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Failed to get response');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      Alert.alert(
+        'Error',
+        'Failed to send message. Please check your internet connection and try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: () => {
+              setInputText(messageText);
+              setMessages(prev => prev.slice(0, -1));
+            },
+          },
+          { text: 'Cancel' },
+        ]
+      );
+    } finally {
+      setIsTyping(false);
     }
-    
-    if (lowerMessage.includes('diet') || lowerMessage.includes('meal') || lowerMessage.includes('food')) {
-      return "Let's talk about nutrition! For your goals, I suggest:\n\n🥗 Breakfast:\n- Oatmeal with berries\n- 2 boiled eggs\n- Green tea\n\n🍗 Lunch:\n- Grilled chicken breast\n- Brown rice\n- Steamed vegetables\n\n🥙 Dinner:\n- Baked fish\n- Quinoa\n- Mixed salad\n\n💧 Remember to drink 8-10 glasses of water daily!\n\nShall I create a personalized meal plan for the week?";
-    }
-    
-    if (lowerMessage.includes('weight') || lowerMessage.includes('lose')) {
-      return "For sustainable weight loss:\n\n📊 Daily Calorie Deficit: 500 calories\n⚡ Target: 0.5-1 kg per week\n\n✅ Key Tips:\n1. Eat protein with every meal\n2. Include fiber-rich foods\n3. Stay hydrated\n4. Get 7-8 hours sleep\n5. Track your progress\n\nConsistency is key! Would you like me to set up a tracking system?";
-    }
-    
-    if (lowerMessage.includes('motivation') || lowerMessage.includes('help')) {
-      return "I'm here to support you! 🌟\n\nRemember:\n- Progress, not perfection\n- Every workout counts\n- Small steps lead to big changes\n- Your health is an investment\n\nWhat specific area do you need help with today?";
-    }
-    
-    return "I'm your AI fitness coach! I can help you with:\n\n💪 Workout plans\n🥗 Meal planning\n📊 Progress tracking\n🎯 Goal setting\n💡 Fitness tips\n\nWhat would you like to know more about?";
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {

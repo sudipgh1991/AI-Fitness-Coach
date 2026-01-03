@@ -13,6 +13,8 @@ export interface User {
   activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   isPremium: boolean;
   createdAt: string;
+  coach_gender?: string;
+  coach_style?: string;
 }
 
 export interface ActivityData {

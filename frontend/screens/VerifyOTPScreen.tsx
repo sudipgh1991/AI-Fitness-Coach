@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { User } from '../types';
+import { api, setAuthToken } from '../services/api';
 
 export default function VerifyOTPScreen({ route, navigation }: any) {
   const { phoneNumber } = route.params;
@@ -61,25 +62,44 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
 
     setIsLoading(true);
     
-    // Simulate OTP verification
-    setTimeout(async () => {
+    try {
+      // Call backend API to verify OTP
+      const response = await api.verifyOTP(phoneNumber, otpCode);
+      
+      if (response.success && response.user && response.token) {
+        // Set auth token
+        setAuthToken(response.token);
+        
+        // Save token to AsyncStorage
+        await AsyncStorage.setItem('authToken', response.token);
+        await AsyncStorage.setItem('userId', response.user.id);
+        
+        // Convert backend user format to frontend format
+        const user: User = {
+          id: response.user.id,
+          name: response.user.name || 'Fitness Enthusiast',
+          email: response.user.email || '',
+          phone: response.user.phone || phoneNumber,
+          isPremium: response.user.is_premium || false,
+          createdAt: response.user.created_at || new Date().toISOString(),
+          coach_gender: response.user.coach_gender || '',
+          coach_style: response.user.coach_style || '',
+        };
+        
+        // Mark onboarding as complete since user is logging in
+        await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+        await login(user);
+        
+        // Navigate to main app
+      } else {
+        Alert.alert('Error', 'Invalid OTP. Please try again.');
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      Alert.alert('Error', 'Failed to verify OTP. Please check your internet connection and try again.');
+    } finally {
       setIsLoading(false);
-      
-      // Mock user login
-      const mockUser: User = {
-        id: '1',
-        name: 'Fitness Enthusiast',
-        email: '',
-        phone: phoneNumber,
-        isPremium: false,
-        createdAt: new Date().toISOString(),
-      };
-      
-      // Mark onboarding as complete since user is logging in
-      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-      await login(mockUser);
-      // Navigate to main app - the AuthContext will handle the switch
-    }, 1500);
+    }
   };
 
   const handleResendOTP = () => {
