@@ -1,0 +1,5 @@
+id,user_id,message,sender,response,created_at
+373e4e7a-93de-4cb3-8900-2904dcfe2d49,1,Suggest a healthy meal plan,user,An unexpected error occurred. Please try again.,2026-01-03T11:38:04.261650
+6cc8e88f-07ac-485e-9610-927599b7b138,1,How can I track my progress?,user,An unexpected error occurred. Please try again.,2026-01-03T11:38:09.050420
+376ceb2d-781c-474b-8c24-34873d281476,1,Create a workout plan for me,user,An unexpected error occurred. Please try again.,2026-01-03T11:38:18.300972
+855de390-2daa-4f1f-a056-e370a0c0b512,c85eb650-968c-4e19-9635-b20d05003d48,Suggest a healthy meal plan,user,An unexpected error occurred. Please try again.,2026-01-03T17:43:31.039053
