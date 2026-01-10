@@ -201,6 +201,24 @@ export default function ProfileScreen({ navigation }: any) {
           onPress={() => navigation.navigate('Home', { screen: 'HabitsAnalysis' })}
         />
 
+        {/* Health & Wellness Section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Health & Wellness</Text>
+        <MenuItem
+          icon="calendar-outline"
+          title="Period Tracker"
+          subtitle="Track your menstrual cycle"
+          onPress={() => navigation.navigate('PeriodTracker')}
+        />
+
+        {/* Rewards Section */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Rewards</Text>
+        <MenuItem
+          icon="gift-outline"
+          title="Refer & Earn"
+          subtitle="Share your code and get rewards"
+          onPress={() => navigation.navigate('Referral')}
+        />
+
         {/* Settings Section */}
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
         <MenuItem

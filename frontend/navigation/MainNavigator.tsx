@@ -23,6 +23,8 @@ import BodyMeasurementsScreen from '../screens/BodyMeasurementsScreen';
 import HabitsAnalysisScreen from '../screens/HabitsAnalysisScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import CoachSelectionScreen from '../screens/CoachSelectionScreen';
+import PeriodTrackerScreen from '../screens/PeriodTrackerScreen';
+import ReferralScreen from '../screens/ReferralScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -51,6 +53,8 @@ function ProfileStack() {
       <Stack.Screen name="ProgressPhotos" component={ProgressPhotosScreen} />
       <Stack.Screen name="BodyMeasurements" component={BodyMeasurementsScreen} />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
+      <Stack.Screen name="PeriodTracker" component={PeriodTrackerScreen} />
+      <Stack.Screen name="Referral" component={ReferralScreen} />
     </Stack.Navigator>
   );
 }
