@@ -150,7 +150,7 @@ export default function HomeScreen({ navigation }: any) {
           style={styles.headerGradient}
         >
           <View style={styles.header}>
-            <View>
+            <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
                 Hello, {user?.name || 'User'}! 👋
               </Text>
@@ -498,6 +498,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
   },
+  greetingContainer: {
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
   greeting: {
     fontSize: FontSizes.xl,
     fontWeight: '700',
@@ -515,6 +519,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: 16,
+    minWidth: 80,
+    maxWidth: 120,
   },
   streakText: {
     fontSize: 24,
