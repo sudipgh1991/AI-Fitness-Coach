@@ -69,11 +69,23 @@ export interface Comment {
   timestamp: string;
 }
 
+export interface NutritionalInfo {
+  foodName: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  fiber?: number;
+  servingSize?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  imageUri?: string;
+  nutritionalInfo?: NutritionalInfo;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';

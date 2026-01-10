@@ -8,13 +8,17 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
-import { ChatMessage } from '../types';
+import { ChatMessage, NutritionalInfo } from '../types';
 
 export default function ChatScreen() {
   const { colors } = useTheme();
@@ -22,6 +26,7 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -32,6 +37,199 @@ export default function ChatScreen() {
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  };
+
+  const estimateCalories = (imageUri: string): NutritionalInfo => {
+    // Simulate AI-based food recognition and calorie estimation
+    // In production, this would call a real AI service (AWS Rekognition, Google Vision, etc.)
+    const foods = [
+      {
+        foodName: 'Grilled Chicken Breast with Vegetables',
+        calories: 350,
+        protein: 42,
+        carbs: 18,
+        fats: 12,
+        fiber: 5,
+        servingSize: '1 plate (300g)',
+      },
+      {
+        foodName: 'Caesar Salad',
+        calories: 280,
+        protein: 15,
+        carbs: 12,
+        fats: 20,
+        fiber: 3,
+        servingSize: '1 bowl (250g)',
+      },
+      {
+        foodName: 'Oatmeal with Berries',
+        calories: 320,
+        protein: 12,
+        carbs: 52,
+        fats: 8,
+        fiber: 9,
+        servingSize: '1 bowl (200g)',
+      },
+      {
+        foodName: 'Avocado Toast',
+        calories: 400,
+        protein: 14,
+        carbs: 38,
+        fats: 24,
+        fiber: 12,
+        servingSize: '2 slices',
+      },
+      {
+        foodName: 'Protein Smoothie Bowl',
+        calories: 380,
+        protein: 28,
+        carbs: 45,
+        fats: 10,
+        fiber: 8,
+        servingSize: '1 bowl (350ml)',
+      },
+    ];
+
+    // Randomly select a food for demo purposes
+    return foods[Math.floor(Math.random() * foods.length)];
+  };
+
+  const pickImage = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'We need camera roll permissions to upload food images.');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setIsAnalyzing(true);
+
+        // Simulate AI analysis delay
+        setTimeout(() => {
+          const nutritionalInfo = estimateCalories(imageUri);
+          
+          // Create user message with image
+          const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: '📸 Uploaded food image',
+            timestamp: new Date().toISOString(),
+            imageUri,
+          };
+
+          setMessages(prev => [...prev, userMessage]);
+          setIsAnalyzing(false);
+          setIsTyping(true);
+
+          // Create AI response with nutritional analysis
+          setTimeout(() => {
+            const assistantMessage: ChatMessage = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: `Great! I've analyzed your food image. Here's what I found:`,
+              timestamp: new Date().toISOString(),
+              nutritionalInfo,
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
+            setIsTyping(false);
+          }, 1000);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      setIsAnalyzing(false);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'We need camera permissions to take food photos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setIsAnalyzing(true);
+
+        setTimeout(() => {
+          const nutritionalInfo = estimateCalories(imageUri);
+          
+          const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: '📸 Took food photo',
+            timestamp: new Date().toISOString(),
+            imageUri,
+          };
+
+          setMessages(prev => [...prev, userMessage]);
+          setIsAnalyzing(false);
+          setIsTyping(true);
+
+          setTimeout(() => {
+            const assistantMessage: ChatMessage = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: `Perfect! I've analyzed your food photo. Here's the nutritional breakdown:`,
+              timestamp: new Date().toISOString(),
+              nutritionalInfo,
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
+            setIsTyping(false);
+          }, 1000);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      setIsAnalyzing(false);
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert(
+      'Upload Food Image',
+      'Choose how to add your food image',
+      [
+        {
+          text: 'Take Photo',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Choose from Gallery',
+          onPress: pickImage,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSend = async () => {
@@ -103,15 +301,97 @@ export default function ChatScreen() {
           styles.messageBubble,
           {
             backgroundColor: isUser ? colors.primary : colors.card,
-            maxWidth: '75%',
+            maxWidth: item.imageUri || item.nutritionalInfo ? '85%' : '75%',
           },
         ]}>
+          {/* Image Display */}
+          {item.imageUri && (
+            <Image
+              source={{ uri: item.imageUri }}
+              style={styles.messageImage}
+              resizeMode="cover"
+            />
+          )}
+
           <Text style={[
             styles.messageText,
             { color: isUser ? '#FFF' : colors.text },
           ]}>
             {item.content}
           </Text>
+
+          {/* Nutritional Info Card */}
+          {item.nutritionalInfo && (
+            <View style={[styles.nutritionCard, { backgroundColor: colors.background }]}>
+              <View style={styles.nutritionHeader}>
+                <Ionicons name="restaurant" size={20} color={colors.primary} />
+                <Text style={[styles.foodName, { color: colors.text }]}>
+                  {item.nutritionalInfo.foodName}
+                </Text>
+              </View>
+
+              <View style={styles.caloriesBadge}>
+                <Text style={[styles.caloriesValue, { color: colors.primary }]}>
+                  {item.nutritionalInfo.calories}
+                </Text>
+                <Text style={[styles.caloriesLabel, { color: colors.textSecondary }]}>
+                  calories
+                </Text>
+              </View>
+
+              <View style={styles.macrosGrid}>
+                <View style={styles.macroItem}>
+                  <Text style={[styles.macroValue, { color: colors.text }]}>
+                    {item.nutritionalInfo.protein}g
+                  </Text>
+                  <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>
+                    Protein
+                  </Text>
+                </View>
+                <View style={styles.macroItem}>
+                  <Text style={[styles.macroValue, { color: colors.text }]}>
+                    {item.nutritionalInfo.carbs}g
+                  </Text>
+                  <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>
+                    Carbs
+                  </Text>
+                </View>
+                <View style={styles.macroItem}>
+                  <Text style={[styles.macroValue, { color: colors.text }]}>
+                    {item.nutritionalInfo.fats}g
+                  </Text>
+                  <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>
+                    Fats
+                  </Text>
+                </View>
+                {item.nutritionalInfo.fiber && (
+                  <View style={styles.macroItem}>
+                    <Text style={[styles.macroValue, { color: colors.text }]}>
+                      {item.nutritionalInfo.fiber}g
+                    </Text>
+                    <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>
+                      Fiber
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {item.nutritionalInfo.servingSize && (
+                <Text style={[styles.servingSize, { color: colors.textSecondary }]}>
+                  Serving: {item.nutritionalInfo.servingSize}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                style={[styles.logFoodButton, { backgroundColor: colors.primary }]}
+                onPress={() => Alert.alert('Success', 'Food logged to your nutrition diary!')}
+              >
+                <Ionicons name="add-circle-outline" size={18} color="#FFF" />
+                <Text style={styles.logFoodText}>Log to Nutrition Diary</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <Text style={[
             styles.messageTime,
             { color: isUser ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
@@ -214,10 +494,24 @@ export default function ChatScreen() {
         ListFooterComponent={renderTypingIndicator()}
       />
 
+      {/* Analyzing Indicator */}
+      {isAnalyzing && (
+        <View style={[styles.analyzingContainer, { backgroundColor: colors.card }]}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.analyzingText, { color: colors.text }]}>
+            Analyzing food image...
+          </Text>
+        </View>
+      )}
+
       {/* Input Bar */}
       <View style={[styles.inputContainer, { backgroundColor: colors.card }]}>
-        <TouchableOpacity style={styles.attachButton}>
-          <Ionicons name="add-circle" size={28} color={colors.primary} />
+        <TouchableOpacity 
+          style={styles.attachButton}
+          onPress={showImageOptions}
+          disabled={isAnalyzing}
+        >
+          <Ionicons name="camera" size={28} color={isAnalyzing ? colors.border : colors.primary} />
         </TouchableOpacity>
         
         <TextInput
@@ -228,6 +522,7 @@ export default function ChatScreen() {
           onChangeText={setInputText}
           multiline
           maxLength={500}
+          editable={!isAnalyzing}
         />
 
         <TouchableOpacity
@@ -236,7 +531,7 @@ export default function ChatScreen() {
             { backgroundColor: inputText.trim() ? colors.primary : colors.border },
           ]}
           onPress={handleSend}
-          disabled={!inputText.trim()}
+          disabled={!inputText.trim() || isAnalyzing}
         >
           <Ionicons name="send" size={20} color="#FFF" />
         </TouchableOpacity>
@@ -353,8 +648,90 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Spacing.xs,
   },
+  messageImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+  },
+  nutritionCard: {
+    marginTop: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  nutritionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  foodName: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+    flex: 1,
+  },
+  caloriesBadge: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  caloriesValue: {
+    fontSize: 36,
+    fontWeight: '800',
+  },
+  caloriesLabel: {
+    fontSize: FontSizes.sm,
+    marginTop: Spacing.xs,
+  },
+  macrosGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.sm,
+  },
+  macroItem: {
+    alignItems: 'center',
+  },
+  macroValue: {
+    fontSize: FontSizes.lg,
+    fontWeight: '700',
+  },
+  macroLabel: {
+    fontSize: FontSizes.xs,
+    marginTop: Spacing.xs,
+  },
+  servingSize: {
+    fontSize: FontSizes.sm,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+    fontStyle: 'italic',
+  },
+  logFoodButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  logFoodText: {
+    color: '#FFF',
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
   messageTime: {
     fontSize: FontSizes.xs,
+  },
+  analyzingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  analyzingText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
   },
   typingContainer: {
     flexDirection: 'row',
