@@ -216,7 +216,7 @@ export default function SelfAssessmentScreen({ navigation }: any) {
   ) => (
     <View style={styles.formGroup}>
       <View style={styles.switchContainer}>
-        <Text style={[styles.label, { color: colors.text }]}>
+        <Text style={[styles.label, styles.switchLabel, { color: colors.text }]}>
           {label}
           {required && <Text style={styles.required}> *</Text>}
         </Text>
@@ -464,6 +464,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.md,
+  },
+  switchLabel: {
+    flex: 1,
+    flexShrink: 1,
   },
   submitButton: {
     flexDirection: 'row',

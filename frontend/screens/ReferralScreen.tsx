@@ -22,7 +22,15 @@ interface Referral {
   name: string;
   status: 'pending' | 'joined' | 'premium';
   reward: number;
+  points: number;
   date: Date;
+}
+
+interface RewardTier {
+  points: number;
+  label: string;
+  discount: string;
+  color: string;
 }
 
 export default function ReferralScreen({ navigation }: any) {
@@ -30,11 +38,21 @@ export default function ReferralScreen({ navigation }: any) {
   
   // Mock referral code for demo
   const [referralCode] = useState('FIT2026');
+  const [totalPoints, setTotalPoints] = useState(150);
+  const [availablePoints, setAvailablePoints] = useState(150);
+  const [referrerDiscount] = useState('20%'); // Discount referrer can offer
   const [referrals, setReferrals] = useState<Referral[]>([
-    { id: '1', name: 'Sarah Johnson', status: 'premium', reward: 10, date: new Date('2026-01-01') },
-    { id: '2', name: 'Mike Chen', status: 'joined', reward: 5, date: new Date('2026-01-03') },
-    { id: '3', name: 'Emma Davis', status: 'pending', reward: 0, date: new Date('2026-01-05') },
+    { id: '1', name: 'Sarah Johnson', status: 'premium', reward: 10, points: 100, date: new Date('2026-01-01') },
+    { id: '2', name: 'Mike Chen', status: 'joined', reward: 5, points: 50, date: new Date('2026-01-03') },
+    { id: '3', name: 'Emma Davis', status: 'pending', reward: 0, points: 0, date: new Date('2026-01-05') },
   ]);
+  
+  const rewardTiers: RewardTier[] = [
+    { points: 50, label: '5% Discount', discount: '5%', color: colors.info },
+    { points: 100, label: '10% Discount', discount: '10%', color: colors.warning },
+    { points: 250, label: '15% Discount', discount: '15%', color: colors.success },
+    { points: 500, label: '1 Month Free', discount: 'FREE', color: colors.primary },
+  ];
   
   const totalEarned = referrals.reduce((sum, ref) => sum + ref.reward, 0);
   const premiumReferrals = referrals.filter(r => r.status === 'premium').length;
@@ -47,7 +65,7 @@ export default function ReferralScreen({ navigation }: any) {
   const shareCode = async () => {
     try {
       await Share.share({
-        message: `Join me on Fitzen AI Coach! Use my referral code ${referralCode} and we both get rewards! 💪`,
+        message: `Join me on Fitzen AI Coach! Use my referral code ${referralCode} to get ${referrerDiscount} OFF your first month, and I'll earn reward points! 💪 Win-win!`,
         title: 'Join Fitzen AI Coach',
       });
     } catch (error) {
@@ -77,6 +95,27 @@ export default function ReferralScreen({ navigation }: any) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const handleRedeemReward = (tier: RewardTier) => {
+    if (availablePoints >= tier.points) {
+      Alert.alert(
+        'Redeem Reward',
+        `Redeem ${tier.points} points for ${tier.label}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Redeem',
+            onPress: () => {
+              setAvailablePoints(availablePoints - tier.points);
+              Alert.alert('Success!', `You've redeemed ${tier.label}! Check your account for the discount.`);
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert('Not Enough Points', `You need ${tier.points - availablePoints} more points to redeem this reward.`);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
@@ -89,30 +128,30 @@ export default function ReferralScreen({ navigation }: any) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Earnings Summary */}
+        {/* Points Summary */}
         <Card>
           <View style={styles.earningsCard}>
-            <View style={[styles.earningsBadge, { backgroundColor: colors.success + '20' }]}>
-              <Ionicons name="cash-outline" size={32} color={colors.success} />
+            <View style={[styles.earningsBadge, { backgroundColor: colors.primary + '20' }]}>  
+              <Ionicons name="trophy" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.earningsAmount, { color: colors.text }]}>
-              ${totalEarned}
+              {availablePoints}
             </Text>
             <Text style={[styles.earningsLabel, { color: colors.textSecondary }]}>
-              Total Earnings
+              Available Points
             </Text>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.text }]}>{totalPoints}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Earned</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.text }]}>${totalEarned}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cash</Text>
+              </View>
+              <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.text }]}>{referrals.length}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.text }]}>{premiumReferrals}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Premium</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.text }]}>${totalEarned > 0 ? (totalEarned / referrals.length).toFixed(2) : '0'}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Avg/User</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Referrals</Text>
               </View>
             </View>
           </View>
@@ -121,6 +160,13 @@ export default function ReferralScreen({ navigation }: any) {
         {/* Referral Code */}
         <Card title="Your Referral Code">
           <View style={styles.codeSection}>
+            <View style={[styles.discountBanner, { backgroundColor: colors.success + '15', borderColor: colors.success }]}>
+              <Ionicons name="gift" size={24} color={colors.success} />
+              <View style={styles.discountInfo}>
+                <Text style={[styles.discountTitle, { color: colors.success }]}>New Users Get {referrerDiscount} OFF</Text>
+                <Text style={[styles.discountSubtitle, { color: colors.textSecondary }]}>First month discount when they use your code</Text>
+              </View>
+            </View>
             <View style={[styles.codeBox, { backgroundColor: colors.primary + '10', borderColor: colors.primary }]}>
               <Text style={[styles.codeText, { color: colors.primary }]}>
                 {referralCode}
@@ -155,7 +201,7 @@ export default function ReferralScreen({ navigation }: any) {
               <View style={styles.stepContent}>
                 <Text style={[styles.stepTitle, { color: colors.text }]}>Share Your Code</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  Share your unique referral code with friends
+                  Share your code - friends get {referrerDiscount} OFF first month
                 </Text>
               </View>
             </View>
@@ -167,7 +213,7 @@ export default function ReferralScreen({ navigation }: any) {
               <View style={styles.stepContent}>
                 <Text style={[styles.stepTitle, { color: colors.text }]}>Friend Signs Up</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  They join Fitzen using your code - You earn $5
+                  They join with your code - You earn 50 points + $5
                 </Text>
               </View>
             </View>
@@ -177,12 +223,64 @@ export default function ReferralScreen({ navigation }: any) {
                 <Text style={styles.stepNumberText}>3</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.text }]}>Upgrade to Premium</Text>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>They Go Premium</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  When they go premium - You earn additional $5
+                  When they upgrade - You earn 100 points + $5 more
                 </Text>
               </View>
             </View>
+
+            <View style={styles.step}>
+              <View style={[styles.stepNumber, { backgroundColor: colors.primary }]}>
+                <Text style={styles.stepNumberText}>4</Text>
+              </View>
+              <View style={styles.stepContent}>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>Redeem Rewards</Text>
+                <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
+                  Use points for discounts or free months
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Card>
+
+        {/* Reward Tiers */}
+        <Card title="Redeem Your Points">
+          <View style={styles.rewardsGrid}>
+            {rewardTiers.map((tier, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.rewardCard,
+                  { 
+                    backgroundColor: tier.color + '15',
+                    borderColor: tier.color,
+                    opacity: availablePoints >= tier.points ? 1 : 0.6,
+                  },
+                ]}
+                onPress={() => handleRedeemReward(tier)}
+                disabled={availablePoints < tier.points}
+              >
+                <View style={[styles.rewardIcon, { backgroundColor: tier.color }]}>
+                  <Ionicons name="star" size={20} color="#FFF" />
+                </View>
+                <Text style={[styles.rewardPoints, { color: tier.color }]}>
+                  {tier.points} pts
+                </Text>
+                <Text style={[styles.rewardLabel, { color: colors.text }]}>
+                  {tier.label}
+                </Text>
+                {availablePoints >= tier.points ? (
+                  <View style={[styles.redeemButton, { backgroundColor: tier.color }]}>
+                    <Text style={styles.redeemButtonText}>Redeem</Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.lockedText, { color: colors.textSecondary }]}>
+                    {tier.points - availablePoints} more
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
         </Card>
 
@@ -210,9 +308,16 @@ export default function ReferralScreen({ navigation }: any) {
                     <Text style={[styles.referralDate, { color: colors.textSecondary }]}>
                       Joined {formatDate(referral.date)}
                     </Text>
-                    <Text style={[styles.referralReward, { color: colors.success }]}>
-                      {referral.reward > 0 ? `+$${referral.reward}` : 'Pending'}
-                    </Text>
+                    <View style={styles.rewardInfo}>
+                      {referral.points > 0 && (
+                        <Text style={[styles.referralPoints, { color: colors.primary }]}>
+                          +{referral.points} pts
+                        </Text>
+                      )}
+                      <Text style={[styles.referralReward, { color: colors.success }]}>
+                        {referral.reward > 0 ? `+$${referral.reward}` : 'Pending'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -300,6 +405,25 @@ const styles = StyleSheet.create({
   },
   codeSection: {
     gap: Spacing.md,
+  },
+  discountBanner: {
+    flexDirection: 'row',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  discountInfo: {
+    flex: 1,
+  },
+  discountTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  discountSubtitle: {
+    fontSize: FontSizes.xs,
   },
   codeBox: {
     padding: Spacing.lg,
@@ -393,6 +517,16 @@ const styles = StyleSheet.create({
   referralDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  rewardInfo: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  referralPoints: {
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
   },
   referralDate: {
     fontSize: FontSizes.sm,
@@ -409,5 +543,50 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSizes.xs,
     lineHeight: 18,
+  },
+  rewardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  rewardCard: {
+    width: '48%',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  rewardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+  },
+  rewardPoints: {
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+  },
+  rewardLabel: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
+  redeemButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  redeemButtonText: {
+    color: '#FFF',
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+  },
+  lockedText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
   },
 });

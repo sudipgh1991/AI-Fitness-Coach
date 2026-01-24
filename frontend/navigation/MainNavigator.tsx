@@ -25,6 +25,11 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import CoachSelectionScreen from '../screens/CoachSelectionScreen';
 import PeriodTrackerScreen from '../screens/PeriodTrackerScreen';
 import ReferralScreen from '../screens/ReferralScreen';
+import WaterTrackingScreen from '../screens/WaterTrackingScreen';
+import StepsTrackingScreen from '../screens/StepsTrackingScreen';
+import WeeklyReviewScreen from '../screens/WeeklyReviewScreen';
+import ProgressDashboardScreen from '../screens/ProgressDashboardScreen';
+import AIInsightsScreen from '../screens/AIInsightsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,6 +45,11 @@ function HomeStack() {
       <Stack.Screen name="Recipes" component={RecipesScreen} />
       <Stack.Screen name="Goals" component={GoalsScreen} />
       <Stack.Screen name="HabitsAnalysis" component={HabitsAnalysisScreen} />
+      <Stack.Screen name="WaterTracking" component={WaterTrackingScreen} />
+      <Stack.Screen name="StepsTracking" component={StepsTrackingScreen} />
+      <Stack.Screen name="WeeklyReview" component={WeeklyReviewScreen} />
+      <Stack.Screen name="ProgressDashboard" component={ProgressDashboardScreen} />
+      <Stack.Screen name="AIInsights" component={AIInsightsScreen} />
     </Stack.Navigator>
   );
 }
@@ -55,6 +65,8 @@ function ProfileStack() {
       <Stack.Screen name="Reminders" component={RemindersScreen} />
       <Stack.Screen name="PeriodTracker" component={PeriodTrackerScreen} />
       <Stack.Screen name="Referral" component={ReferralScreen} />
+      <Stack.Screen name="ProgressDashboard" component={ProgressDashboardScreen} />
+      <Stack.Screen name="WeeklyReview" component={WeeklyReviewScreen} />
     </Stack.Navigator>
   );
 }

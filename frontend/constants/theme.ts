@@ -1,8 +1,8 @@
 // Theme colors and configuration
 export const Colors = {
   light: {
-    primary: '#DC2626',
-    secondary: '#EF4444',
+    primary: '#4b8352',
+    secondary: '#5fa167',
     background: '#FFFFFF',
     card: '#F8F9FA',
     text: '#212529',
@@ -16,8 +16,8 @@ export const Colors = {
     tabBarInactive: '#9CA3AF',
   },
   dark: {
-    primary: '#EF4444',
-    secondary: '#F87171',
+    primary: '#5fa167',
+    secondary: '#6fb577',
     background: '#121212',
     card: '#1E1E1E',
     text: '#FFFFFF',

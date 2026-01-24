@@ -105,10 +105,16 @@ export default function ProfileScreen({ navigation }: any) {
 
   const StatBox = ({ label, value, unit }: any) => (
     <View style={[styles.statBox, { backgroundColor: colors.card }]}>
-      <Text style={[styles.statValue, { color: colors.text }]}>
-        {value}
-        <Text style={[styles.statUnit, { color: colors.textSecondary }]}> {unit}</Text>
-      </Text>
+      <View style={styles.statValueContainer}>
+        <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1}>
+          {value}
+        </Text>
+        {unit ? (
+          <Text style={[styles.statUnit, { color: colors.textSecondary }]} numberOfLines={1}>
+            {unit}
+          </Text>
+        ) : null}
+      </View>
       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
         {label}
       </Text>
@@ -515,13 +521,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  statValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Spacing.xs,
+    flexWrap: 'nowrap',
+  },
   statValue: {
     fontSize: FontSizes.xl,
     fontWeight: '700',
-    marginBottom: Spacing.xs,
+    flexShrink: 0,
   },
   statUnit: {
     fontSize: FontSizes.sm,
+    marginLeft: 2,
+    flexShrink: 0,
   },
   statLabel: {
     fontSize: FontSizes.xs,

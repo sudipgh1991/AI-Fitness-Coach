@@ -27,7 +27,8 @@
     "web": {},
     "plugins": [
       "expo-apple-authentication",
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "scheme": "aicoach"
   }

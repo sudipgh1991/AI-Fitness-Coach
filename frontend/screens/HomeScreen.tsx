@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/Card';
+import { Sidebar } from '../components/Sidebar';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -21,6 +22,7 @@ const screenWidth = Dimensions.get('window').width;
 export default function HomeScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // Mock data - Enhanced fitness tracking
   const todayStats = {
@@ -39,6 +41,40 @@ export default function HomeScreen({ navigation }: any) {
     weight: 75,
     workoutsCompleted: 2,
     streak: 12,
+  };
+
+  // Health status color logic: Red (needs improvement), Yellow (acceptable), Green (on track)
+  const getHealthStatus = (type: string, value: number, goal?: number) => {
+    switch (type) {
+      case 'steps':
+        if (value < 8000) return { color: '#EF4444', status: 'needs-improvement', icon: 'alert-circle' };
+        if (value >= 8000 && value < 10000) return { color: '#F59E0B', status: 'acceptable', icon: 'warning' };
+        return { color: '#10B981', status: 'on-track', icon: 'checkmark-circle' };
+      
+      case 'caloriesBurned':
+        if (value < 300) return { color: '#EF4444', status: 'needs-improvement', icon: 'alert-circle' };
+        if (value >= 300 && value < 400) return { color: '#F59E0B', status: 'acceptable', icon: 'warning' };
+        return { color: '#10B981', status: 'on-track', icon: 'checkmark-circle' };
+      
+      case 'water':
+        const waterPercent = goal ? (value / goal) * 100 : 0;
+        if (waterPercent < 60) return { color: '#EF4444', status: 'needs-improvement', icon: 'alert-circle' };
+        if (waterPercent >= 60 && waterPercent < 80) return { color: '#F59E0B', status: 'acceptable', icon: 'warning' };
+        return { color: '#10B981', status: 'on-track', icon: 'checkmark-circle' };
+      
+      case 'sleep':
+        if (value < 6) return { color: '#EF4444', status: 'needs-improvement', icon: 'alert-circle' };
+        if (value >= 6 && value < 7) return { color: '#F59E0B', status: 'acceptable', icon: 'warning' };
+        return { color: '#10B981', status: 'on-track', icon: 'checkmark-circle' };
+      
+      case 'workouts':
+        if (value < 1) return { color: '#EF4444', status: 'needs-improvement', icon: 'alert-circle' };
+        if (value === 1) return { color: '#F59E0B', status: 'acceptable', icon: 'warning' };
+        return { color: '#10B981', status: 'on-track', icon: 'checkmark-circle' };
+      
+      default:
+        return { color: colors.primary, status: 'neutral', icon: 'information-circle' };
+    }
   };
 
   const weeklySteps = {
@@ -150,6 +186,12 @@ export default function HomeScreen({ navigation }: any) {
           style={styles.headerGradient}
         >
           <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setSidebarVisible(true)}
+            >
+              <Ionicons name="menu" size={28} color="#FFF" />
+            </TouchableOpacity>
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
                 Hello, {user?.name || 'User'}! 👋
@@ -165,59 +207,6 @@ export default function HomeScreen({ navigation }: any) {
             </View>
           </View>
         </LinearGradient>
-
-        {/* Daily Summary Cards */}
-        <View style={styles.summarySection}>
-          <View style={styles.summaryGrid}>
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.primary + '20' }]}>
-                <Ionicons name="flame-outline" size={24} color={colors.primary} />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.caloriesBurned}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                Cal Burned
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.success + '20' }]}>
-                <Ionicons name="water-outline" size={24} color={colors.success} />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.water}/{todayStats.waterGoal}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                Glasses
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.info + '20' }]}>
-                <Ionicons name="moon-outline" size={24} color={colors.info} />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.sleep}h
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                Sleep
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[styles.summaryIcon, { backgroundColor: colors.secondary + '20' }]}>
-                <Ionicons name="barbell-outline" size={24} color={colors.secondary} />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.workoutsCompleted}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                Workouts
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* Today's Goals - Ring Progress */}
         <View style={styles.goalsSection}>
@@ -296,6 +285,181 @@ export default function HomeScreen({ navigation }: any) {
                 </View>
               </View>
             </View>
+          </View>
+        </View>
+
+        {/* Premium Upgrade Card */}
+        {!user?.isPremium && (
+          <View style={styles.premiumSection}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Payment')}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={['#FFD700', '#FFA500', '#FF8C00']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.premiumCard}
+              >
+                <View style={styles.premiumContent}>
+                  <View style={styles.premiumHeader}>
+                    <View style={styles.premiumIconCircle}>
+                      <Ionicons name="star" size={32} color="#FFF" />
+                    </View>
+                    <View style={styles.premiumPill}>
+                      <Text style={styles.premiumPillText}>LIMITED OFFER</Text>
+                    </View>
+                  </View>
+                  
+                  <Text style={styles.premiumTitle}>Upgrade to Premium</Text>
+                  <Text style={styles.premiumSubtitle}>
+                    Unlock all features and get personalized coaching
+                  </Text>
+
+                  <View style={styles.premiumFeatures}>
+                    <View style={styles.featureRow}>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                      <Text style={styles.featureText}>Unlimited AI Coach Sessions</Text>
+                    </View>
+                    <View style={styles.featureRow}>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                      <Text style={styles.featureText}>Advanced Analytics & Insights</Text>
+                    </View>
+                    <View style={styles.featureRow}>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                      <Text style={styles.featureText}>Custom Meal & Workout Plans</Text>
+                    </View>
+                    <View style={styles.featureRow}>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                      <Text style={styles.featureText}>Priority Support</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.premiumPricing}>
+                    <Text style={styles.priceText}>$9.99</Text>
+                    <Text style={styles.priceSubtext}>/month</Text>
+                  </View>
+
+                  <View style={styles.upgradeButton}>
+                    <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
+                    <Ionicons name="arrow-forward" size={20} color="#FF8C00" />
+                  </View>
+                </View>
+
+                {/* Decorative Elements */}
+                <View style={styles.decorativeCircle1} />
+                <View style={styles.decorativeCircle2} />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Daily Summary Cards */}
+        <View style={styles.summarySection}>
+          <View style={styles.summaryGrid}>
+            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+              <View style={[
+                styles.summaryIcon, 
+                { backgroundColor: getHealthStatus('steps', todayStats.steps).color + '20' }
+              ]}>
+                <Ionicons 
+                  name="footsteps-outline" 
+                  size={24} 
+                  color={getHealthStatus('steps', todayStats.steps).color} 
+                />
+              </View>
+              <View style={styles.statusBadge}>
+                <Ionicons 
+                  name={getHealthStatus('steps', todayStats.steps).icon} 
+                  size={12} 
+                  color={getHealthStatus('steps', todayStats.steps).color} 
+                />
+              </View>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
+                {todayStats.steps.toLocaleString()}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                STEPS
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+              <View style={[
+                styles.summaryIcon, 
+                { backgroundColor: getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color + '20' }
+              ]}>
+                <Ionicons 
+                  name="flame-outline" 
+                  size={24} 
+                  color={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color} 
+                />
+              </View>
+              <View style={styles.statusBadge}>
+                <Ionicons 
+                  name={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).icon} 
+                  size={12} 
+                  color={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color} 
+                />
+              </View>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
+                {todayStats.caloriesBurned}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                CAL BURNED
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+              <View style={[
+                styles.summaryIcon, 
+                { backgroundColor: getHealthStatus('water', todayStats.water, todayStats.waterGoal).color + '20' }
+              ]}>
+                <Ionicons 
+                  name="water-outline" 
+                  size={24} 
+                  color={getHealthStatus('water', todayStats.water, todayStats.waterGoal).color} 
+                />
+              </View>
+              <View style={styles.statusBadge}>
+                <Ionicons 
+                  name={getHealthStatus('water', todayStats.water, todayStats.waterGoal).icon} 
+                  size={12} 
+                  color={getHealthStatus('water', todayStats.water, todayStats.waterGoal).color} 
+                />
+              </View>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
+                {todayStats.water}/{todayStats.waterGoal}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                GLASSES
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
+              <View style={[
+                styles.summaryIcon, 
+                { backgroundColor: getHealthStatus('sleep', todayStats.sleep).color + '20' }
+              ]}>
+                <Ionicons 
+                  name="moon-outline" 
+                  size={24} 
+                  color={getHealthStatus('sleep', todayStats.sleep).color} 
+                />
+              </View>
+              <View style={styles.statusBadge}>
+                <Ionicons 
+                  name={getHealthStatus('sleep', todayStats.sleep).icon} 
+                  size={12} 
+                  color={getHealthStatus('sleep', todayStats.sleep).color} 
+                />
+              </View>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
+                {todayStats.sleep}h
+              </Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                SLEEP
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -423,6 +587,102 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* AI Coach Features */}
+        <View style={styles.aiCoachSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>🤖 AI Coach Features</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('AIInsights')}>
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiCoachScroll}>
+            <TouchableOpacity
+              style={[styles.aiCoachCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('WaterTracking')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#4FC3F7', '#29B6F6']}
+                style={styles.aiCoachIconContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="water" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Water</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Track intake</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.aiCoachCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('StepsTracking')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#66BB6A', '#4CAF50']}
+                style={styles.aiCoachIconContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="walk" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Steps</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Daily activity</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.aiCoachCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('WeeklyReview')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#AB47BC', '#9C27B0']}
+                style={styles.aiCoachIconContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="calendar" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Weekly Review</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>See progress</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.aiCoachCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('ProgressDashboard')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#FF7043', '#FF5722']}
+                style={styles.aiCoachIconContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="stats-chart" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Dashboard</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>All metrics</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.aiCoachCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('AIInsights')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#FFA726', '#FF9800']}
+                style={styles.aiCoachIconContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="bulb" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>AI Insights</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Smart tips</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
@@ -472,6 +732,13 @@ export default function HomeScreen({ navigation }: any) {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+
+      {/* Sidebar */}
+      <Sidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
@@ -497,6 +764,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
+  },
+  menuButton: {
+    marginRight: Spacing.md,
   },
   greetingContainer: {
     flex: 1,
@@ -552,6 +822,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    position: 'relative',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   summaryIcon: {
     width: 48,
@@ -792,6 +1079,174 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: FontSizes.md,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  // Premium Card Styles
+  premiumSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  premiumCard: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  premiumContent: {
+    padding: Spacing.xl,
+    position: 'relative',
+    zIndex: 1,
+  },
+  premiumHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  premiumIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumPill: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  premiumPillText: {
+    color: '#FFF',
+    fontSize: FontSizes.xs,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  premiumTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFF',
+    marginBottom: Spacing.xs,
+  },
+  premiumSubtitle: {
+    fontSize: FontSizes.md,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: Spacing.lg,
+    lineHeight: 22,
+  },
+  premiumFeatures: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  featureText: {
+    fontSize: FontSizes.md,
+    color: '#FFF',
+    fontWeight: '600',
+  },
+  premiumPricing: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Spacing.lg,
+  },
+  priceText: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  priceSubtext: {
+    fontSize: FontSizes.lg,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  upgradeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+    paddingVertical: Spacing.md + 2,
+    borderRadius: BorderRadius.lg,
+    gap: Spacing.sm,
+  },
+  upgradeButtonText: {
+    fontSize: FontSizes.lg,
+    fontWeight: '800',
+    color: '#FF8C00',
+  },
+  decorativeCircle1: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    top: -50,
+    right: -30,
+  },
+  decorativeCircle2: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    bottom: -20,
+    left: -20,
+  },
+  // AI Coach Section Styles
+  aiCoachSection: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  viewAllText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  aiCoachScroll: {
+    gap: Spacing.md,
+    paddingRight: Spacing.lg,
+  },
+  aiCoachCard: {
+    width: 100,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  aiCoachIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  aiCoachCardTitle: {
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  aiCoachCardSubtitle: {
+    fontSize: FontSizes.xs,
+    fontWeight: '500',
     textAlign: 'center',
   },
 });
