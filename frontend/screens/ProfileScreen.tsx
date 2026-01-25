@@ -338,27 +338,6 @@ export default function ProfileScreen({ navigation }: any) {
           />
         </Card>
 
-        {/* Subscription */}
-        {!user?.isPremium && (
-          <Card>
-            <View style={styles.premiumCard}>
-              <Ionicons name="star" size={48} color="#FFD700" />
-              <Text style={[styles.premiumTitle, { color: colors.text }]}>
-                Upgrade to Premium
-              </Text>
-              <Text style={[styles.premiumDescription, { color: colors.textSecondary }]}>
-                Get unlimited access to personalized plans, advanced analytics, and more!
-              </Text>
-              <Button
-                title="Upgrade Now"
-                onPress={() => navigation.navigate('Payment')}
-                variant="primary"
-                fullWidth
-              />
-            </View>
-          </Card>
-        )}
-
         {/* Support */}
         <Card title="Support">
           <MenuItem
