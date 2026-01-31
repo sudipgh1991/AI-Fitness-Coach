@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import axios from 'axios';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
@@ -855,20 +856,94 @@ export default function ChatScreen() {
         setIsTyping(false);
       }, 1000);
     } else {
-      // Regular AI response
-      setTimeout(() => {
-        const aiResponse = getAIResponse(messageText);
+      // Call the API for AI response
+      try {
+        console.log('Sending request to API with question:', messageText);
+        
+        const response = await axios({
+          method: 'POST',
+          url: 'https://ihfqb9149k.execute-api.us-east-1.amazonaws.com/dev/GetAIRecommendation',
+          data: {
+            question: messageText,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          timeout: 60000, // 60 second timeout
+        });
+
+        console.log('API Response:', response.data);
+
+        // Parse the response body which is a stringified JSON
+        const responseBody = typeof response.data.body === 'string' 
+          ? JSON.parse(response.data.body) 
+          : response.data.body;
+        
+        const aiAnswer = responseBody.answer || 'Sorry, I could not generate a response.';
+        
+        // Format the response with proper line breaks and structure
+        const formattedAnswer = formatAIResponse(aiAnswer);
+
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: aiResponse,
+          content: formattedAnswer,
           timestamp: new Date().toISOString(),
         };
 
         setMessages(prev => [...prev, assistantMessage]);
         setIsTyping(false);
-      }, 1500);
+      } catch (error: any) {
+        console.error('API Error Details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          headers: error.response?.headers,
+        });
+        
+        let errorMessage = '';
+        if (error.response?.status === 403) {
+          errorMessage = '🔒 API access is currently restricted. Please check API permissions.';
+        } else if (error.response?.status === 429) {
+          errorMessage = '⏱️ Too many requests. Please wait a moment.';
+        } else if (error.code === 'ECONNABORTED') {
+          errorMessage = '⏱️ Request timed out. Please try again.';
+        } else if (!error.response) {
+          errorMessage = '🌐 Network error. Please check your connection.';
+        } else {
+          errorMessage = `⚠️ API Error (${error.response?.status || 'Unknown'})`;
+        }
+        
+        // Fallback to local response if API fails
+        const fallbackResponse = getAIResponse(messageText);
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: errorMessage + '\n\n' + fallbackResponse + '\n\n💡 Using offline AI mode',
+          timestamp: new Date().toISOString(),
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        setIsTyping(false);
+      }
     }
+  };
+
+  // Format the AI response for better readability
+  const formatAIResponse = (text: string): string => {
+    return text
+      .replace(/\\n\\n/g, '\n\n') // Convert escaped double newlines
+      .replace(/\\n/g, '\n') // Convert single escaped newlines
+      .replace(/#{4,} (.+?)(?=\n|$)/g, '\n\n✦ $1\n') // Convert #### headers with modern bullet
+      .replace(/### (.+?)(?=\n|$)/g, '\n\n📋 $1\n') // Convert ### headers with emoji
+      .replace(/\*\*Day (\d+):/g, '\n\n🗓️ Day $1:') // Format Day headers
+      .replace(/\*\*(.+?):\*\*/g, '\n$1:') // Format bold headers (remove ** but add newline)
+      .replace(/\*\*(.+?)\*\*/g, '$1') // Remove remaining bold markdown
+      .replace(/^- /gm, '  • ') // Convert line-starting dashes to indented bullets
+      .replace(/\n {2}- /g, '\n    • ') // Handle nested bullets
+      .replace(/: (\d+)/g, ': $1') // Clean up spacing around numbers
+      .trim();
   };
 
   const getAIResponse = (message: string): string => {
