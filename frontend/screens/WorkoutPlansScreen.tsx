@@ -1,1011 +1,777 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-  Image,
-  Modal,
-  ActivityIndicator,
-  Slider,
 } from 'react-native';
-import { Video, AVPlaybackStatus } from 'expo-av';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
+import { Spacing, FontSizes } from '../constants/theme';
 
-const screenWidth = Dimensions.get('window').width;
+interface Exercise {
+  name: string;
+  sets?: string;
+  notes?: string;
+  link?: string;
+}
 
-type WorkoutPlan = {
+interface WorkoutDay {
+  title: string;
+  exercises: Exercise[];
+}
+
+interface WorkoutPlan {
   id: string;
   name: string;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  focus: string;
-  daysPerWeek: number;
-  exercises: Array<{
-    name: string;
-    sets: string;
-    reps: string;
-    rest: string;
-    hasVideo: boolean;
-    videoUrl: string;
-    description?: string;
-  }>;
-};
+  subtitle: string;
+  notes?: string[];
+  days: WorkoutDay[];
+  additionalVideos?: { title: string; link: string }[];
+}
+
+const WORKOUT_PLANS: WorkoutPlan[] = [
+  {
+    id: 'home_level2',
+    name: 'Home Level 2',
+    subtitle: 'Dumbbell Program',
+    notes: [
+      '10,000 steps daily',
+      'Warm up: Deadbug, Plank, Bird Dog - 15 reps each',
+      '5 min warm up + stretching before each session',
+      'Rest 30-45 secs between sets, 1 min between exercises',
+    ],
+    days: [
+      {
+        title: 'Day 1 & 4 - Legs and Shoulder',
+        exercises: [
+          { name: 'Free Squats', sets: '3 sets x 10 reps', link: 'https://www.youtube.com/watch?v=WULoh2irC84' },
+          { name: 'Weighted Squats', sets: '3 x 10 reps', link: 'https://www.youtube.com/watch?v=YqYi90vp8m4' },
+          { name: 'Straight Leg Deadlift', sets: '3 x 8 reps (light)', link: 'https://www.youtube.com/watch?v=fai6L-DQ8a0' },
+          { name: 'Calf Raises', sets: '5 sets x 10 reps', link: 'https://www.youtube.com/watch?v=-M4-G8p8fmc' },
+          { name: 'Dumbbell Shoulder Press', sets: '4 sets x 10 reps', link: 'https://www.youtube.com/watch?v=hKm9V4EYrYs' },
+          { name: 'Side Raises', sets: '3 sets x 8 reps', link: 'https://www.youtube.com/watch?v=3VcKaXpzqRo' },
+          { name: 'Front Raises', sets: '3 sets x 8 reps', link: 'https://www.youtube.com/watch?v=-t7fuZ0KhDA' },
+          { name: 'Leg Raises', sets: '5 sets x failure', link: 'https://www.youtube.com/watch?v=Wp4BlxcFTkE' },
+          { name: 'Plank', link: 'https://www.youtube.com/watch?v=pvIjsG5Svck' },
+          { name: 'Glute Bridge', link: 'https://www.youtube.com/watch?v=OUgsJ8-Vi0E&t=22s' },
+        ],
+      },
+      {
+        title: 'Day 2 & 5 - Back and Arms',
+        exercises: [
+          { name: 'Dumbbell Rows', sets: '4 sets x 10 reps each arm', link: 'https://www.youtube.com/watch?v=pYcpY20QaE8' },
+          { name: 'Dumbbell Deadlift', sets: '3 x 10 reps', link: 'https://www.youtube.com/watch?v=lJ3QwaXNJfw' },
+          { name: 'Dumbbell Bicep Curls', sets: '4 sets x 8 reps', link: 'https://www.youtube.com/watch?v=sAq_ocpRh_I' },
+          { name: 'Hammer Curls', sets: '4 sets x 10 reps', link: 'https://www.youtube.com/watch?v=zC3nLlEvin4' },
+          { name: 'Back Dips for Tricep', sets: '3 sets x 10 reps', link: 'https://www.youtube.com/watch?v=0326dy_-CzM' },
+          { name: 'Dumbbell Tricep Extension', sets: '3 x 8 reps each arm', link: 'https://www.youtube.com/watch?v=jTQWYdWLvys' },
+          { name: 'Dumbbell Kickback', sets: '3 sets x 8 each arm', link: 'https://www.youtube.com/watch?v=6SS6K3lAwZ8' },
+          { name: 'Plank', link: 'https://www.youtube.com/watch?v=pvIjsG5Svck' },
+          { name: 'Glute Bridge', link: 'https://www.youtube.com/watch?v=OUgsJ8-Vi0E&t=22s' },
+        ],
+      },
+      {
+        title: 'Day 3 & 6 - Chest and Core',
+        exercises: [
+          { name: 'Dumbbell Chest Press', sets: '5 sets x 10 reps', link: 'https://www.youtube.com/watch?v=uUGDRwge4F8' },
+          { name: 'Dumbbell Flys', sets: '3 sets x 8 reps', link: 'https://www.youtube.com/watch?v=f5EMDU6d9fY' },
+          { name: 'Dumbbell Pullovers', sets: '3 sets x 8 reps', link: 'https://www.youtube.com/watch?v=m_Z7KFVcuHQ' },
+          { name: 'Sit Ups', sets: '5 sets x failure', link: 'https://www.youtube.com/watch?v=1fbU_MkV7NE' },
+          { name: 'Leg Raises', sets: '3 sets x failure', link: 'https://www.youtube.com/watch?v=JB2oyawG9KI' },
+          { name: 'Dead Bug', link: 'https://www.youtube.com/watch?v=g_BYB0R-4Ws' },
+          { name: 'Plank', link: 'https://www.youtube.com/watch?v=pvIjsG5Svck' },
+          { name: 'Glute Bridge', link: 'https://www.youtube.com/watch?v=OUgsJ8-Vi0E&t=22s' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+  {
+    id: 'resistance_band',
+    name: 'Resistance Band',
+    subtitle: 'Full Body Band Workout',
+    notes: [
+      'Minimum 12,000 steps daily',
+    ],
+    days: [
+      {
+        title: 'Full Body - All Days',
+        exercises: [
+          { name: 'Jumping Jack', sets: '100 reps' },
+          { name: 'Burpee', sets: '100 reps' },
+          { name: 'Band Squat to Press', link: 'https://www.youtube.com/watch?v=kFBhPFyxGRk' },
+          { name: 'Resistance/Assistance Pistol Squats', sets: '12 x 3 sets', link: 'https://www.youtube.com/watch?v=tiA23NSUm7A' },
+          { name: 'Band Bent-Over Rows', link: 'https://www.youtube.com/shorts/DWl-WW3ScEM' },
+          { name: 'Leg Banded Romanian Deadlifts', sets: '12 x 3 sets' },
+          { name: 'Band-Resisted Plyometric Lunges', sets: '12 x 3 sets' },
+          { name: 'Banded Bicep Curls with Overhead Press', sets: '12 x 3 sets' },
+          { name: 'Band-Resisted Tricep Kickbacks', sets: '12 x 3 sets' },
+          { name: 'Band-Resisted Reverse Flyes', sets: '12 x 3 sets' },
+          { name: 'Banded Glute Bridges', sets: '12 x 3 sets' },
+          { name: 'Banded Russian Twists', sets: '12 x 3 sets' },
+          { name: 'Plank', sets: 'Hold till failure' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: '2000 Steps Challenge', link: 'https://www.youtube.com/watch?v=NZeWHe1f4Io' },
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+  {
+    id: 'gym_plan3',
+    name: 'Gym Plan 3',
+    subtitle: 'Chest / Back / Legs Split',
+    notes: [
+      'Warm up: Deadbug, Plank, Bird Dog - 15 reps each',
+      'Cardio for 20 mins after every workout',
+      'Cardio every day on empty stomach for up to 30 mins',
+    ],
+    days: [
+      {
+        title: 'Day 1 & 4 - Chest, Shoulder, Tricep',
+        exercises: [
+          { name: 'Weighted Push Up', link: 'https://www.youtube.com/watch?v=SYZ7ktqfL2Q' },
+          { name: 'Incline Bench Press', sets: '3-4 x 8-10', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1drL-iBIG-Yd1Y2aBU3Atsj' },
+          { name: 'Decline Bench Press', sets: '3-4 x 8-10' },
+          { name: 'Mid Cable Crossover', sets: '3-4 x 8-10', link: 'https://www.youtube.com/watch?v=hhruLxo9yZU' },
+          { name: 'Shoulder Press (Machine)', sets: '3-4 x 8-10' },
+          { name: 'Cable Lateral Raise', sets: '3-4 x 8-10' },
+          { name: 'Seated Front Raise', sets: '3-4 x 8-10' },
+          { name: 'Shoulder Shrug', sets: '3-4 x 8-10', link: 'https://www.youtube.com/watch?v=JEnhFC1AtHw' },
+          { name: 'Weighted Bench Dips', sets: '3-4 x 8-10', link: 'https://www.youtube.com/watch?v=HEeT2sbmcXc' },
+          { name: 'Reverse Single Cable Extension', link: 'https://www.youtube.com/watch?v=58hvUundROk' },
+          { name: 'Tricep Kickbacks', sets: '3-4 x 8-10' },
+          { name: 'Russian Twist' },
+          { name: 'Wood Chopper', link: 'https://www.youtube.com/watch?v=wu3WvaWmCMU' },
+          { name: 'Plank' },
+        ],
+      },
+      {
+        title: 'Day 2 & 5 - Legs',
+        exercises: [
+          { name: 'Jump Rope', sets: '100 times' },
+          { name: 'Bulgarian Split Squat', sets: '15-20 reps', link: 'https://www.youtube.com/watch?v=2C-uNgKwPLE' },
+          { name: 'Barbell Squat', sets: '3-4 x 15-20', link: 'https://www.youtube.com/watch?v=nFAscG0XUNY' },
+          { name: 'Dumbbell Reverse Lunges', sets: '3 x 15-20', link: 'https://www.youtube.com/watch?v=jfQCcFm7SyA' },
+          { name: 'Leg Press', sets: '3-4 x 15-20', link: 'https://www.youtube.com/watch?v=xCQ-FY_bj9E' },
+          { name: 'Leg Extension', sets: '15-20 reps', link: 'https://www.youtube.com/watch?v=vRQpiTwUeyM' },
+          { name: 'Leg Curl', sets: '15-20 reps', link: 'https://www.youtube.com/watch?v=SbSNUXPRkc8' },
+          { name: 'Adduction & Abduction', sets: '3-4 x 15-20', link: 'https://www.youtube.com/shorts/5R9qCBLlFLY' },
+          { name: 'Calf Raise Seated', sets: '3-4 x 15-20', link: 'https://www.youtube.com/watch?v=JbyjNymZOt0' },
+          { name: 'Calf Raise on Hack Squat Machine', sets: '15-20 reps', link: 'https://www.youtube.com/watch?v=cMALtjmyOZc' },
+          { name: 'Russian Twist', sets: '15-20 reps', link: 'https://www.youtube.com/watch?v=gU-NeDmjmIc' },
+          { name: 'Reverse Crunch', sets: '15-20 reps' },
+          { name: 'Wood Chopper', sets: '3-4 x 15-20', link: 'https://www.youtube.com/watch?v=wu3WvaWmCMU' },
+        ],
+      },
+      {
+        title: 'Day 3 & 6 - Back and Bicep',
+        exercises: [
+          { name: 'Chin Up' },
+          { name: 'Deadlift', link: 'https://www.youtube.com/shorts/E7NfngF5Q3o' },
+          { name: 'Wide Grip Lat Pull Down', sets: '3-4 x 12-15', link: 'https://www.youtube.com/watch?v=yPqv3ejnZvc' },
+          { name: 'V Bar Lat Pull Down', sets: '3-4 x 12-15', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1fd2EA8K0gb0-7YJhrWbWT_' },
+          { name: 'Cable Row', sets: '3-4 x 12-15' },
+          { name: 'Face Pull', sets: '3-4 x 12-15' },
+          { name: 'Dumbbell Hammer Curl', sets: '3-4 x 12-15', link: 'https://www.youtube.com/watch?v=RIEMoYL_h1Y' },
+          { name: 'Cable Bicep Curl', sets: '3-4 x 12-15', link: 'https://www.youtube.com/watch?v=UsaY33N4KEw' },
+          { name: 'Zotman Curl', sets: 'Until failure' },
+          { name: 'Reverse Curl' },
+          { name: 'Preacher Curl', sets: '3-4 x 12-15' },
+          { name: 'Concentration Curl', link: 'https://www.youtube.com/watch?v=0AUGkch3tzc&t=43s' },
+          { name: 'Wrist Curl', link: 'https://www.youtube.com/watch?v=7ac_qmBjkFI' },
+          { name: 'Reverse Wrist Curl', sets: '3-4 x 12-15', link: 'https://www.youtube.com/watch?v=osYPwlBiCRM' },
+          { name: 'Hanging Leg Raises' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+  {
+    id: 'gym_workout',
+    name: 'Gym Workout',
+    subtitle: 'Advanced Dumbbell / Cable Split',
+    notes: [
+      'Warm up: Deadbug, Plank, Bird Dog - 15 reps each',
+      'Cardio for 20 mins after every workout',
+      'Cardio every day on empty stomach for up to 30 mins',
+    ],
+    days: [
+      {
+        title: 'Day 1 & 4 - Chest, Shoulder, Tricep',
+        exercises: [
+          { name: 'Decline Dumbbell Press', sets: '3-4 x 8-10', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1drL-iBIG-Yd1Y2aBU3Atsj' },
+          { name: 'Incline Dumbbell Bench Press', sets: '3-4 x 8-10' },
+          { name: 'Cable Crossover', sets: '3-4 x 8-10' },
+          { name: 'Shoulder Press', sets: '3-4 x 8-10' },
+          { name: 'Cable Lateral Raise', sets: '3-4 x 8-10' },
+          { name: 'Cable Front Raise', sets: '3-4 x 8-10' },
+          { name: 'Skull Crusher', sets: '3-4 x 8-10' },
+          { name: 'Cable Tricep Push Down', sets: '3-4 x 8-10' },
+          { name: 'Tricep Kickbacks', link: 'https://www.youtube.com/shorts/3Bv1n7-DN7c' },
+          { name: 'Flat Bench Lying Leg Raise', sets: '3-4 x 8-10' },
+          { name: 'Plank', sets: 'Until failure' },
+          { name: 'Russian Twists', sets: 'Until failure' },
+          { name: 'Reverse Crunch', sets: 'Until failure' },
+        ],
+      },
+      {
+        title: 'Day 2 & 5 - Legs',
+        exercises: [
+          { name: 'Goblet Squat', sets: '3-4 x 12-15' },
+          { name: 'Free Lunges', sets: '3 x 15' },
+          { name: 'Stiff Leg Deadlift', sets: '3-4 x 12-15', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1cSFqXuabDOZVkJsgeL3mOA' },
+          { name: 'Leg Press', sets: '3-4 x 12-15' },
+          { name: 'Adduction', sets: '3-4 x 12-15' },
+          { name: 'Calf Raise', sets: '3-4 x 12-15' },
+          { name: 'Hanging Leg Raise', sets: '3-4 x 12-15' },
+          { name: 'Decline Crunches', sets: '5 sets (failure)' },
+          { name: 'Russian Twists' },
+          { name: 'Leg Raises', sets: '5 sets (failure)' },
+        ],
+      },
+      {
+        title: 'Day 3 & 6 - Back and Bicep',
+        exercises: [
+          { name: 'Wide Grip Lat Pull Down', sets: '3-4 x 12-15' },
+          { name: 'V Bar Lat Pull Down', sets: '3-4 x 12-15', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1fd2EA8K0gb0-7YJhrWbWT_' },
+          { name: 'Cable Row', sets: '3-4 x 12-15' },
+          { name: 'Face Pull', sets: '3-4 x 12-15' },
+          { name: 'Standing Alternate Hammer Curls', sets: '3-4 x 12-15' },
+          { name: 'Cable Bicep Curl', sets: '3-4 x 12-15' },
+          { name: 'Zotman Curl', sets: 'Until failure' },
+          { name: 'Reverse Curl' },
+          { name: 'Preacher Curl', sets: '3-4 x 12-15' },
+          { name: 'Concentration Curl', link: 'https://www.youtube.com/watch?v=0AUGkch3tzc&t=43s' },
+          { name: 'Plank' },
+          { name: 'Crunches', sets: '3-4 x 12-15' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+  {
+    id: 'home_workout',
+    name: 'Home Workout',
+    subtitle: 'Resistance Tube Program',
+    notes: [
+      'Minimum 12,000 steps daily',
+      '1 rest day per week',
+    ],
+    days: [
+      {
+        title: 'Full Body (Resistance Tube) - 20-25 reps x 3',
+        exercises: [
+          { name: 'Jumping Jack', sets: '20-25 x 3', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1cAWsxLeouK40pczT1yWEYG' },
+          { name: 'Push Up', sets: '20-25 x 3' },
+          { name: 'Resistance Tube Squat', sets: '20-25 x 3' },
+          { name: 'Bicep Curl', sets: '20-25 x 3' },
+          { name: 'Tricep Extension', sets: '20-25 x 3' },
+          { name: 'Lateral Raises', sets: '20-25 x 3' },
+          { name: 'Leg Press', sets: '20-25 x 3' },
+          { name: 'Lunges', sets: '20-25 x 3' },
+          { name: 'Calf Raise', sets: '20-25 x 3' },
+          { name: 'Crunches', sets: '20-25 x 3' },
+          { name: 'Russian Twists', sets: '20-25 x 3' },
+          { name: 'Plank', sets: 'Hold x 3 sets' },
+          { name: 'Side Plank', sets: 'Hold x 3 sets' },
+        ],
+      },
+      {
+        title: 'Any 5 Day - Beginner Full Body',
+        exercises: [
+          { name: 'Steps (8k goal)', link: 'https://www.youtube.com/playlist?list=PLvqNQmL5df1d7QPHJ65YQygDbULSwJvEF' },
+          { name: 'Modified Jumping Jack (no jumping)', sets: '30 x 3 sets' },
+          { name: 'Push Up', sets: '10 x 3 sets' },
+          { name: 'Squat Hold', sets: '45-60 sec x 3 sets' },
+          { name: 'Plank', sets: '45-60 sec x 3 sets' },
+          { name: 'Stretching' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: '2000 Steps Challenge', link: 'https://www.youtube.com/watch?v=NZeWHe1f4Io' },
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+  {
+    id: 'new_plan',
+    name: 'New Plan',
+    subtitle: 'Push / Pull / Leg Split',
+    notes: [
+      'Schedule: PUSH - PULL - LEG - REST - PUSH - PULL - LEG - REST',
+      '4 sets x 12-15 reps unless otherwise noted',
+    ],
+    days: [
+      {
+        title: 'Push Day - Chest, Shoulder, Tricep',
+        exercises: [
+          { name: 'Push Up', sets: '15 reps x 4 sets' },
+          { name: 'Bench Press', sets: '4 sets' },
+          { name: 'Incline Dumbbell Bench Press', sets: '4 sets' },
+          { name: 'Cable Fly', sets: '4 sets' },
+          { name: 'Dumbbell Shoulder Press', sets: '4 sets' },
+          { name: 'Cable Overhead Tricep Extension', sets: '4 sets' },
+          { name: 'Bentover Single Arm Cable Kickback', sets: '4 sets' },
+          { name: 'V Bar Pushdown', sets: '4 sets' },
+          { name: 'Tricep Dips', sets: '4 x 15 reps' },
+          { name: 'Plank (Core)', sets: '3 sets - hold' },
+        ],
+      },
+      {
+        title: 'Pull Day - Back and Bicep',
+        exercises: [
+          { name: 'Pull Up', sets: '4 sets' },
+          { name: 'Barbell Rows', sets: '4 sets' },
+          { name: 'Pull Over', sets: '4 sets' },
+          { name: 'Lat Pull Down', sets: '4 sets' },
+          { name: 'Seated Cable Rowing', sets: '3 sets' },
+          { name: 'Cable Bicep Curl', sets: '4 sets' },
+          { name: 'Cable Hammer Curls', sets: '4 sets' },
+          { name: 'Dumbbell Concentration Curl', sets: '4 sets' },
+          { name: 'Barbell Preacher Curl', sets: '4 sets' },
+          { name: 'Hanging Leg Raise & Cable Woodchop', sets: '15 each' },
+        ],
+      },
+      {
+        title: 'Leg Day - Quads, Hamstrings, Calves, Core',
+        exercises: [
+          { name: 'Leg Press', sets: '5 sets' },
+          { name: 'Reverse Lunges', sets: '3 sets' },
+          { name: 'Hack Squats', sets: '3 sets' },
+          { name: 'Leg Extension', sets: '3 sets' },
+          { name: 'Leg Curls', sets: '4 sets' },
+          { name: 'Straight Leg Deadlift', sets: '5 sets' },
+          { name: 'Calf Raise', sets: '5 x 15 reps' },
+          { name: 'Plank', sets: '3 sets' },
+          { name: 'Side Plank (both sides)', sets: '3 sets each side' },
+        ],
+      },
+    ],
+    additionalVideos: [
+      { title: 'Pre-Workout', link: 'https://youtu.be/sTxC3J3gQEU' },
+      { title: 'Post-Workout', link: 'https://youtu.be/IVt1KqKcYZk' },
+      { title: 'Flexibility & Mobility', link: 'https://youtu.be/nFo5dOhlYUw' },
+      { title: 'Abs Circuit', link: 'https://youtu.be/uUKAYkQZXko' },
+    ],
+  },
+];
 
 export default function WorkoutPlansScreen({ navigation }: any) {
   const { colors } = useTheme();
-  const [selectedPlan, setSelectedPlan] = useState<WorkoutPlan | null>(null);
-  const [showExercises, setShowExercises] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<{ name: string; url: string; description?: string } | null>(null);
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
-  const [videoStatus, setVideoStatus] = useState<AVPlaybackStatus | null>(null);
-  const [isSeeking, setIsSeeking] = useState(false);
-  const videoRef = useRef<Video>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('home_level2');
+  const [expandedDay, setExpandedDay] = useState<number | null>(0);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
 
-  const workoutPlans: WorkoutPlan[] = [
-    {
-      id: '1',
-      name: 'Full Body Strength',
-      duration: '8 weeks',
-      level: 'Beginner',
-      focus: 'Build overall strength',
-      daysPerWeek: 3,
-      exercises: [
-        { 
-          name: 'Squats', 
-          sets: '3', 
-          reps: '12', 
-          rest: '60s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          description: 'Keep feet shoulder-width apart, lower hips back and down, chest up'
-        },
-        { 
-          name: 'Push-ups', 
-          sets: '3', 
-          reps: '10', 
-          rest: '45s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-          description: 'Hands under shoulders, body straight, lower chest to ground'
-        },
-        { 
-          name: 'Bent Over Rows', 
-          sets: '3', 
-          reps: '12', 
-          rest: '60s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          description: 'Hinge at hips, pull weight to ribcage, squeeze shoulder blades'
-        },
-        { 
-          name: 'Plank', 
-          sets: '3', 
-          reps: '30s', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-          description: 'Forearms on ground, body straight from head to heels'
-        },
-        { 
-          name: 'Lunges', 
-          sets: '3', 
-          reps: '10 each', 
-          rest: '45s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-          description: 'Step forward, lower back knee, front knee over ankle'
-        },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Fat Loss Circuit',
-      duration: '6 weeks',
-      level: 'Intermediate',
-      focus: 'Burn fat and improve conditioning',
-      daysPerWeek: 4,
-      exercises: [
-        { 
-          name: 'Burpees', 
-          sets: '4', 
-          reps: '15', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-          description: 'Squat, hands down, jump back to plank, push-up, jump feet forward, jump up'
-        },
-        { 
-          name: 'Mountain Climbers', 
-          sets: '4', 
-          reps: '20', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-          description: 'Plank position, alternate bringing knees to chest quickly'
-        },
-        { 
-          name: 'Jump Squats', 
-          sets: '4', 
-          reps: '15', 
-          rest: '45s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-          description: 'Squat down, explode up jumping, land softly'
-        },
-        { 
-          name: 'High Knees', 
-          sets: '4', 
-          reps: '30s', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-          description: 'Run in place bringing knees up to hip level rapidly'
-        },
-        { 
-          name: 'Plank Jacks', 
-          sets: '4', 
-          reps: '20', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-          description: 'Plank position, jump feet out and in like jumping jacks'
-        },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Muscle Building Split',
-      duration: '12 weeks',
-      level: 'Advanced',
-      focus: 'Maximum muscle growth',
-      daysPerWeek: 5,
-      exercises: [
-        { 
-          name: 'Bench Press', 
-          sets: '4', 
-          reps: '8-10', 
-          rest: '90s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
-          description: 'Lower bar to chest, press up, keep elbows at 45 degrees'
-        },
-        { 
-          name: 'Incline Dumbbell Press', 
-          sets: '4', 
-          reps: '10-12', 
-          rest: '60s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-          description: 'Bench at 30-45 degrees, press dumbbells up and together'
-        },
-        { 
-          name: 'Cable Flyes', 
-          sets: '3', 
-          reps: '12-15', 
-          rest: '45s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
-          description: 'Slight bend in elbows, bring cables together in arc motion'
-        },
-        { 
-          name: 'Tricep Dips', 
-          sets: '3', 
-          reps: '10-12', 
-          rest: '60s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          description: 'Lower body by bending elbows, push back up, keep core tight'
-        },
-        { 
-          name: 'Overhead Tricep Extension', 
-          sets: '3', 
-          reps: '12-15', 
-          rest: '45s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-          description: 'Extend arms overhead, lower weight behind head, extend back up'
-        },
-      ],
-    },
-    {
-      id: '4',
-      name: 'Home HIIT Workout',
-      duration: '4 weeks',
-      level: 'Beginner',
-      focus: 'High intensity at home',
-      daysPerWeek: 3,
-      exercises: [
-        { 
-          name: 'Jumping Jacks', 
-          sets: '3', 
-          reps: '30s', 
-          rest: '20s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          description: 'Jump feet out while raising arms overhead, return to start'
-        },
-        { 
-          name: 'Bodyweight Squats', 
-          sets: '3', 
-          reps: '20', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-          description: 'Feet shoulder-width, lower hips, keep chest up'
-        },
-        { 
-          name: 'Push-ups', 
-          sets: '3', 
-          reps: '10', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-          description: 'Hands under shoulders, lower body as one unit'
-        },
-        { 
-          name: 'Bicycle Crunches', 
-          sets: '3', 
-          reps: '20', 
-          rest: '20s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-          description: 'Alternating elbow to opposite knee in cycling motion'
-        },
-        { 
-          name: 'Plank', 
-          sets: '3', 
-          reps: '30s', 
-          rest: '30s', 
-          hasVideo: true,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-          description: 'Hold straight body position on forearms and toes'
-        },
-      ],
-    },
-  ];
+  const selectedPlan = WORKOUT_PLANS.find(p => p.id === selectedPlanId)!;
 
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'Beginner':
-        return colors.success;
-      case 'Intermediate':
-        return colors.warning;
-      case 'Advanced':
-        return colors.error;
-      default:
-        return colors.text;
-    }
+  const getVideoId = (url: string): string | null => {
+    if (!url || url.includes('playlist?list=')) return null;
+    const shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+    if (shortsMatch) return shortsMatch[1];
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (shortMatch) return shortMatch[1];
+    const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+    if (watchMatch) return watchMatch[1];
+    return null;
   };
 
-  const renderPlanCard = (plan: WorkoutPlan) => (
-    <TouchableOpacity
-      key={plan.id}
-      style={[styles.planCard, { backgroundColor: colors.card }]}
-      onPress={() => {
-        setSelectedPlan(plan);
-        setShowExercises(true);
-      }}
-    >
-      <LinearGradient
-        colors={[colors.primary + '15', 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.planGradient}
-      >
-        <View style={styles.planHeader}>
-          <View style={styles.planInfo}>
-            <Text style={[styles.planName, { color: colors.text }]}>{plan.name}</Text>
-            <Text style={[styles.planFocus, { color: colors.textSecondary }]}>{plan.focus}</Text>
-          </View>
-          <View style={[styles.levelBadge, { backgroundColor: getLevelColor(plan.level) + '20' }]}>
-            <Text style={[styles.levelText, { color: getLevelColor(plan.level) }]}>
-              {plan.level}
-            </Text>
-          </View>
-        </View>
+  const handlePlanSelect = (planId: string) => {
+    setSelectedPlanId(planId);
+    setExpandedDay(0);
+    setPlayingVideo(null);
+  };
 
-        <View style={styles.planStats}>
-          <View style={styles.statItem}>
-            <Ionicons name="time" size={18} color={colors.primary} />
-            <Text style={[styles.statText, { color: colors.text }]}>{plan.duration}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Ionicons name="calendar" size={18} color={colors.primary} />
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {plan.daysPerWeek} days/week
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Ionicons name="barbell" size={18} color={colors.primary} />
-            <Text style={[styles.statText, { color: colors.text }]}>
-              {plan.exercises.length} exercises
-            </Text>
-          </View>
-        </View>
+  const toggleDay = (index: number) => {
+    setExpandedDay(expandedDay === index ? null : index);
+    setPlayingVideo(null);
+  };
 
-        <View style={[styles.viewButton, { backgroundColor: colors.primary }]}>
-          <Text style={styles.viewButtonText}>View Exercises</Text>
-          <Ionicons name="arrow-forward" size={16} color="#FFF" />
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
+  const toggleVideo = (key: string) => {
+    setPlayingVideo(playingVideo === key ? null : key);
+  };
 
-  const renderExerciseList = () => {
-    if (!selectedPlan) return null;
+  const styles = createStyles(colors);
 
-    return (
-      <View style={styles.exerciseListContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            setShowExercises(false);
-            setSelectedPlan(null);
-          }}
-        >
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
-          <Text style={[styles.backText, { color: colors.text }]}>Back to Plans</Text>
         </TouchableOpacity>
-
-        <View style={[styles.selectedPlanHeader, { backgroundColor: colors.card }]}>
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.selectedPlanGradient}
-          >
-            <Text style={styles.selectedPlanName}>{selectedPlan.name}</Text>
-            <Text style={styles.selectedPlanDescription}>{selectedPlan.focus}</Text>
-            <View style={styles.selectedPlanBadges}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{selectedPlan.level}</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{selectedPlan.duration}</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{selectedPlan.daysPerWeek}x/week</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-
-        <Text style={[styles.exercisesTitle, { color: colors.text }]}>Exercises</Text>
-
-        {selectedPlan.exercises.map((exercise, index) => (
-          <View key={index} style={[styles.exerciseCard, { backgroundColor: colors.card }]}>
-            <View style={styles.exerciseHeader}>
-              <View style={[styles.exerciseNumber, { backgroundColor: colors.primary }]}>
-                <Text style={styles.exerciseNumberText}>{index + 1}</Text>
-              </View>
-              <View style={styles.exerciseInfo}>
-                <Text style={[styles.exerciseName, { color: colors.text }]}>
-                  {exercise.name}
-                </Text>
-                <View style={styles.exerciseDetails}>
-                  <Text style={[styles.exerciseDetail, { color: colors.textSecondary }]}>
-                    {exercise.sets} sets × {exercise.reps}
-                  </Text>
-                  <Text style={[styles.exerciseSeparator, { color: colors.border }]}>•</Text>
-                  <Text style={[styles.exerciseDetail, { color: colors.textSecondary }]}>
-                    Rest: {exercise.rest}
-                  </Text>
-                </View>
-              </View>
-              {exercise.hasVideo && (
-                <TouchableOpacity
-                  style={[styles.videoButton, { backgroundColor: colors.primary + '20' }]}
-                  onPress={() => {
-                    setSelectedVideo({
-                      name: exercise.name,
-                      url: exercise.videoUrl,
-                      description: exercise.description,
-                    });
-                    setShowVideoModal(true);
-                    setIsVideoLoading(true);
-                  }}
-                >
-                  <Ionicons name="play-circle" size={32} color={colors.primary} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        ))}
-
-        <TouchableOpacity style={[styles.startWorkoutButton, { backgroundColor: colors.primary }]}>
-          <Ionicons name="fitness" size={24} color="#FFF" />
-          <Text style={styles.startWorkoutText}>Start Workout</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: Spacing.xl }} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Workout Plans</Text>
+        <View style={{ width: 40 }} />
       </View>
-    );
-  };
 
-  const handlePlayPause = async () => {
-    if (videoRef.current) {
-      if (videoStatus?.isLoaded && videoStatus.isPlaying) {
-        await videoRef.current.pauseAsync();
-      } else {
-        await videoRef.current.playAsync();
-      }
-    }
-  };
-
-  const handleReplay = async () => {
-    if (videoRef.current) {
-      await videoRef.current.replayAsync();
-    }
-  };
-
-  const handleSlowMotion = async () => {
-    if (videoRef.current && videoStatus?.isLoaded) {
-      const currentRate = videoStatus.rate || 1.0;
-      const newRate = currentRate === 1.0 ? 0.5 : currentRate === 0.5 ? 0.25 : 1.0;
-      await videoRef.current.setRateAsync(newRate, true);
-    }
-  };
-
-  const handleSeek = async (value: number) => {
-    if (videoRef.current && videoStatus?.isLoaded) {
-      await videoRef.current.setPositionAsync(value);
-    }
-  };
-
-  const formatTime = (millis: number) => {
-    const totalSeconds = Math.floor(millis / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const renderVideoModal = () => (
-    <Modal
-      visible={showVideoModal}
-      animationType="slide"
-      presentationStyle="fullScreen"
-      onRequestClose={() => {
-        setShowVideoModal(false);
-        setSelectedVideo(null);
-        if (videoRef.current) {
-          videoRef.current.pauseAsync();
-        }
-      }}
-    >
-      <View style={[styles.videoModalContainer, { backgroundColor: '#000' }]}>
-        <View style={styles.videoHeader}>
+      {/* Plan Tab Selector */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabScrollView}
+        contentContainerStyle={styles.tabContainer}
+      >
+        {WORKOUT_PLANS.map(plan => (
           <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => {
-              setShowVideoModal(false);
-              setSelectedVideo(null);
-              if (videoRef.current) {
-                videoRef.current.pauseAsync();
-              }
-            }}
+            key={plan.id}
+            style={[
+              styles.tabButton,
+              { borderColor: colors.primary },
+              selectedPlanId === plan.id && { backgroundColor: colors.primary },
+            ]}
+            onPress={() => handlePlanSelect(plan.id)}
           >
-            <Ionicons name="close" size={32} color="#FFF" />
+            <Text
+              style={[
+                styles.tabButtonText,
+                { color: selectedPlanId === plan.id ? '#fff' : colors.primary },
+              ]}
+              numberOfLines={1}
+            >
+              {plan.name}
+            </Text>
           </TouchableOpacity>
-          <View style={styles.videoHeaderContent}>
-            <Text style={styles.videoTitle}>{selectedVideo?.name}</Text>
-            {selectedVideo?.description && (
-              <Text style={styles.videoDescription}>{selectedVideo.description}</Text>
-            )}
-          </View>
+        ))}
+      </ScrollView>
+
+      {/* Plan Content */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Plan Badge */}
+        <View style={[styles.planBadge, { backgroundColor: colors.primary + '20' }]}>
+          <Text style={[styles.planBadgeText, { color: colors.primary }]}>{selectedPlan.subtitle}</Text>
         </View>
 
-        <View style={styles.videoContainer}>
-          {isVideoLoading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Loading video...</Text>
-            </View>
-          )}
-          {selectedVideo && (
-            <Video
-              ref={videoRef}
-              source={{ uri: selectedVideo.url }}
-              style={styles.video}
-              useNativeControls={false}
-              resizeMode="contain"
-              isLooping
-              onPlaybackStatusUpdate={(status) => {
-                if (!isSeeking) {
-                  setVideoStatus(status);
-                }
-                if (status.isLoaded) {
-                  setIsVideoLoading(false);
-                }
-              }}
-              onLoad={() => setIsVideoLoading(false)}
-            />
-          )}
-        </View>
-
-        {videoStatus?.isLoaded && (
-          <View style={[styles.seekbarContainer, { backgroundColor: colors.card + '99' }]}>
-            <Text style={styles.timeText}>
-              {formatTime(videoStatus.positionMillis || 0)}
-            </Text>
-            <Slider
-              style={styles.seekbar}
-              minimumValue={0}
-              maximumValue={videoStatus.durationMillis || 0}
-              value={videoStatus.positionMillis || 0}
-              onSlidingStart={() => setIsSeeking(true)}
-              onSlidingComplete={(value) => {
-                handleSeek(value);
-                setIsSeeking(false);
-              }}
-              minimumTrackTintColor={colors.primary}
-              maximumTrackTintColor="rgba(255,255,255,0.3)"
-              thumbTintColor={colors.primary}
-            />
-            <Text style={styles.timeText}>
-              {formatTime(videoStatus.durationMillis || 0)}
-            </Text>
-          </View>
-        )}
-
-        <View style={[styles.videoControls, { backgroundColor: colors.card + 'E6' }]}>
-          <View style={styles.controlsRow}>
+        {/* Workout Days */}
+        {selectedPlan.days.map((day, dayIndex) => (
+          <View
+            key={dayIndex}
+            style={[styles.dayCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
             <TouchableOpacity
-              style={[styles.controlButton, { backgroundColor: colors.primary }]}
-              onPress={handleReplay}
+              style={styles.dayHeader}
+              onPress={() => toggleDay(dayIndex)}
+              activeOpacity={0.7}
             >
-              <Ionicons name="reload" size={24} color="#FFF" />
-              <Text style={styles.controlButtonText}>Replay</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.controlButton, styles.playButton, { backgroundColor: colors.primary }]}
-              onPress={handlePlayPause}
-            >
+              <Text style={[styles.dayTitle, { color: colors.text }]}>{day.title}</Text>
               <Ionicons
-                name={videoStatus?.isLoaded && videoStatus.isPlaying ? 'pause' : 'play'}
-                size={32}
-                color="#FFF"
+                name={expandedDay === dayIndex ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.controlButton, { backgroundColor: colors.secondary }]}
-              onPress={handleSlowMotion}
-            >
-              <Ionicons name="speedometer" size={24} color="#FFF" />
-              <Text style={styles.controlButtonText}>
-                {videoStatus?.isLoaded && videoStatus.rate === 0.5
-                  ? '0.5x'
-                  : videoStatus?.isLoaded && videoStatus.rate === 0.25
-                  ? '0.25x'
-                  : '1.0x'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            {expandedDay === dayIndex && (
+              <View style={styles.exerciseList}>
+                {day.exercises.map((exercise, exIndex) => {
+                  const videoKey = `${selectedPlanId}-${dayIndex}-${exIndex}`;
+                  const isPlaying = playingVideo === videoKey;
+                  const videoId = exercise.link ? getVideoId(exercise.link) : null;
+                  const canEmbed = videoId !== null;
 
-          <View style={styles.tipsContainer}>
-            <Ionicons name="information-circle" size={20} color={colors.primary} />
-            <Text style={[styles.tipsText, { color: colors.text }]}>
-              Watch carefully for proper form. Use slow motion to study technique.
-            </Text>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <LinearGradient
-        colors={[colors.primary, colors.secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          {navigation.canGoBack() && (
-            <TouchableOpacity
-              style={styles.headerBackButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={24} color="#FFF" />
-            </TouchableOpacity>
-          )}
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Workout Plans</Text>
-            <Text style={styles.headerSubtitle}>Personalized for your goals</Text>
-          </View>
-        </View>
-      </LinearGradient>
-
-      {renderVideoModal()}
-
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
-        {!showExercises ? (
-          <>
-            <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-              <Ionicons name="information-circle" size={32} color={colors.info} />
-              <View style={styles.infoContent}>
-                <Text style={[styles.infoTitle, { color: colors.text }]}>
-                  Choose Your Plan
-                </Text>
-                <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                  Each plan includes video guidance for proper form and technique
-                </Text>
+                  return (
+                    <View key={exIndex}>
+                      <View style={[styles.exerciseRow, { borderBottomColor: colors.border }]}>
+                        <View style={styles.exerciseInfo}>
+                          <Text style={[styles.exerciseName, { color: colors.text }]}>
+                            {exercise.name}
+                          </Text>
+                          {exercise.sets ? (
+                            <Text style={[styles.exerciseMeta, { color: colors.textSecondary }]}>
+                              {exercise.sets}
+                            </Text>
+                          ) : null}
+                          {exercise.notes ? (
+                            <Text style={[styles.exerciseNoteText, { color: colors.textSecondary }]}>
+                              {exercise.notes}
+                            </Text>
+                          ) : null}
+                        </View>
+                        {exercise.link && canEmbed ? (
+                          <TouchableOpacity
+                            style={[
+                              styles.playButton,
+                              { backgroundColor: isPlaying ? '#e53935' : colors.primary },
+                            ]}
+                            onPress={() => toggleVideo(videoKey)}
+                          >
+                            <Ionicons
+                              name={isPlaying ? 'stop' : 'play'}
+                              size={14}
+                              color="#fff"
+                            />
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
+                      {isPlaying && videoId ? (
+                        <View style={styles.videoContainer}>
+                          <YoutubeIframe
+                            height={240}
+                            videoId={videoId}
+                            play={true}
+                            webViewStyle={{ opacity: 0.99 }}
+                            webViewProps={{ allowsFullscreenVideo: true }}
+                          />
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })}
               </View>
-            </View>
+            )}
+          </View>
+        ))}
 
-            {workoutPlans.map((plan) => renderPlanCard(plan))}
-          </>
-        ) : (
-          renderExerciseList()
-        )}
+        {/* Notes */}
+        {selectedPlan.notes && selectedPlan.notes.length > 0 ? (
+          <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Notes</Text>
+            {selectedPlan.notes.map((note, i) => (
+              <View key={i} style={styles.noteRow}>
+                <Text style={[styles.noteBullet, { color: colors.primary }]}>{'•'}</Text>
+                <Text style={[styles.noteText, { color: colors.textSecondary }]}>{note}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
-        <View style={{ height: Spacing.xl }} />
+        {/* Additional Resources */}
+        {selectedPlan.additionalVideos && selectedPlan.additionalVideos.length > 0 ? (
+          <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Additional Resources</Text>
+            {selectedPlan.additionalVideos.map((video, vIndex) => {
+              const additionalKey = `additional-${selectedPlanId}-${vIndex}`;
+              const isPlaying = playingVideo === additionalKey;
+              const videoId = getVideoId(video.link);
+
+              return (
+                <View key={vIndex}>
+                  <TouchableOpacity
+                    style={[
+                      styles.resourceButton,
+                      {
+                        backgroundColor: colors.primary + '15',
+                        borderColor: colors.primary + '40',
+                      },
+                    ]}
+                    onPress={() => videoId ? toggleVideo(additionalKey) : null}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={isPlaying ? 'stop-circle' : 'play-circle'}
+                      size={20}
+                      color={colors.primary}
+                    />
+                    <Text style={[styles.resourceText, { color: colors.text }]}>{video.title}</Text>
+                    {!videoId ? (
+                      <Ionicons name="open-outline" size={16} color={colors.textSecondary} />
+                    ) : null}
+                  </TouchableOpacity>
+                  {isPlaying && videoId ? (
+                    <View style={styles.videoContainer}>
+                      <YoutubeIframe
+                        height={240}
+                        videoId={videoId}
+                        play={true}
+                        webViewStyle={{ opacity: 0.99 }}
+                        webViewProps={{ allowsFullscreenVideo: true }}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerBackButton: {
-    marginRight: Spacing.md,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '800',
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: FontSizes.md,
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: Spacing.lg,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderRadius: 16,
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: FontSizes.sm,
-  },
-  planCard: {
-    borderRadius: 20,
-    marginBottom: Spacing.lg,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  planGradient: {
-    padding: Spacing.lg,
-  },
-  planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  planInfo: {
-    flex: 1,
-  },
-  planName: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  planFocus: {
-    fontSize: FontSizes.sm,
-  },
-  levelBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 12,
-  },
-  levelText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '700',
-  },
-  planStats: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  statText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-  },
-  viewButton: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-  },
-  viewButtonText: {
-    color: '#FFF',
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-  },
-  exerciseListContainer: {
-    flex: 1,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  backText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-  },
-  selectedPlanHeader: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: Spacing.lg,
-  },
-  selectedPlanGradient: {
-    padding: Spacing.xl,
-    alignItems: 'center',
-  },
-  selectedPlanName: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '800',
-    color: '#FFF',
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  selectedPlanDescription: {
-    fontSize: FontSizes.md,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: Spacing.md,
-    textAlign: 'center',
-  },
-  selectedPlanBadges: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  badge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  badgeText: {
-    color: '#FFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '700',
-  },
-  exercisesTitle: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    marginBottom: Spacing.md,
-  },
-  exerciseCard: {
-    borderRadius: 16,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  exerciseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  exerciseNumber: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  exerciseNumberText: {
-    color: '#FFF',
-    fontSize: FontSizes.md,
-    fontWeight: '800',
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  exerciseDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  exerciseDetail: {
-    fontSize: FontSizes.sm,
-  },
-  exerciseSeparator: {
-    fontSize: FontSizes.sm,
-  },
-  videoButton: {
-    padding: Spacing.xs,
-    borderRadius: 12,
-  },
-  startWorkoutButton: {
-    flexDirection: 'row',
-    padding: Spacing.lg,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  startWorkoutText: {
-    color: '#FFF',
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-  },
-  videoModalContainer: {
-    flex: 1,
-  },
-  videoHeader: {
-    paddingTop: 60,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  closeButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
-  },
-  videoHeaderContent: {
-    flex: 1,
-  },
-  videoTitle: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    color: '#FFF',
-    marginBottom: Spacing.xs,
-  },
-  videoDescription: {
-    fontSize: FontSizes.md,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 20,
-  },
-  videoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  seekbarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm,
-  },
-  seekbar: {
-    flex: 1,
-    height: 40,
-  },
-  timeText: {
-    color: '#FFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    minWidth: 40,
-  },
-  video: {
-    width: screenWidth,
-    height: screenWidth * (9 / 16),
-  },
-  loadingContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  loadingText: {
-    color: '#FFF',
-    fontSize: FontSizes.md,
-  },
-  videoControls: {
-    padding: Spacing.xl,
-    paddingBottom: Spacing.xl,
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    gap: Spacing.md,
-  },
-  controlButton: {
-    flex: 1,
-    padding: Spacing.md,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  playButton: {
-    paddingVertical: Spacing.lg,
-  },
-  controlButtonText: {
-    color: '#FFF',
-    fontSize: FontSizes.sm,
-    fontWeight: '700',
-  },
-  tipsContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  tipsText: {
-    flex: 1,
-    fontSize: FontSizes.sm,
-    lineHeight: 18,
-  },
-});
+function createStyles(colors: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      fontSize: FontSizes.xl,
+      fontWeight: '700',
+    },
+    tabScrollView: {
+      maxHeight: 52,
+      paddingVertical: 4,
+    },
+    tabContainer: {
+      paddingHorizontal: Spacing.md,
+      gap: 8,
+      alignItems: 'center',
+    },
+    tabButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1.5,
+      minWidth: 80,
+      alignItems: 'center',
+    },
+    tabButtonText: {
+      fontSize: FontSizes.sm,
+      fontWeight: '600',
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: Spacing.md,
+      paddingTop: Spacing.sm,
+    },
+    planBadge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      marginBottom: Spacing.md,
+    },
+    planBadgeText: {
+      fontSize: FontSizes.sm,
+      fontWeight: '600',
+    },
+    dayCard: {
+      borderRadius: 12,
+      borderWidth: 1,
+      marginBottom: Spacing.sm,
+      overflow: 'hidden',
+    },
+    dayHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: Spacing.md,
+    },
+    dayTitle: {
+      fontSize: FontSizes.md,
+      fontWeight: '600',
+      flex: 1,
+      marginRight: 8,
+    },
+    exerciseList: {
+      paddingBottom: 4,
+    },
+    exerciseRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+      borderBottomWidth: 0.5,
+    },
+    exerciseInfo: {
+      flex: 1,
+      marginRight: 8,
+    },
+    exerciseName: {
+      fontSize: FontSizes.sm,
+      fontWeight: '500',
+    },
+    exerciseMeta: {
+      fontSize: FontSizes.xs,
+      marginTop: 2,
+    },
+    exerciseNoteText: {
+      fontSize: FontSizes.xs,
+      fontStyle: 'italic',
+      marginTop: 2,
+    },
+    playButton: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    videoContainer: {
+      height: 240,
+      backgroundColor: '#000',
+    },
+    webview: {
+      flex: 1,
+    },
+    infoCard: {
+      borderRadius: 12,
+      borderWidth: 1,
+      padding: Spacing.md,
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    sectionTitle: {
+      fontSize: FontSizes.md,
+      fontWeight: '700',
+      marginBottom: Spacing.sm,
+    },
+    noteRow: {
+      flexDirection: 'row',
+      marginBottom: 6,
+    },
+    noteBullet: {
+      fontSize: FontSizes.sm,
+      marginRight: 8,
+      lineHeight: 20,
+    },
+    noteText: {
+      fontSize: FontSizes.sm,
+      flex: 1,
+      lineHeight: 20,
+    },
+    resourceButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.sm,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginBottom: 8,
+      gap: 8,
+    },
+    resourceText: {
+      fontSize: FontSizes.sm,
+      fontWeight: '500',
+      flex: 1,
+    },
+  });
+}
