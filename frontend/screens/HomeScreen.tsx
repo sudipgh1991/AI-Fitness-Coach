@@ -727,6 +727,16 @@ export default function HomeScreen({ navigation }: any) {
               </View>
               <Text style={styles.actionText}>Habits</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#F59E0B' }]}
+              onPress={() => navigation.navigate('FounderStory')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconCircle}>
+                <Ionicons name="star" size={28} color="#FFF" />
+              </View>
+              <Text style={styles.actionText}>Success Stories</Text>
+            </TouchableOpacity>
           </View>
         </View>
 

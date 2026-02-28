@@ -74,6 +74,16 @@ export default function OnboardingScreen({ navigation }: any) {
           </Text>
         </TouchableOpacity>
         
+        <TouchableOpacity
+          style={styles.founderStoryButton}
+          onPress={() => navigation.navigate('FounderStory')}
+        >
+          <Ionicons name="star" size={16} color={colors.secondary} style={{ marginRight: 6 }} />
+          <Text style={[styles.founderStoryText, { color: colors.secondary }]}>
+            See Success Stories & Transformations
+          </Text>
+        </TouchableOpacity>
+        
         <View style={styles.optionsContainer}>
           <TouchableOpacity
             style={[styles.optionCard, { backgroundColor: colors.card }]}
@@ -539,6 +549,18 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: FontSizes.md,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  founderStoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  founderStoryText: {
+    fontSize: FontSizes.sm,
     fontWeight: '700',
     textDecorationLine: 'underline',
   },
