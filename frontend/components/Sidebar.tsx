@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -29,15 +30,16 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose, navigation }) => {
   const { colors, theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { language, setLanguage, t, languageOptions } = useLanguage();
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      t.logoutConfirmTitle,
+      t.logoutConfirmMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Logout',
+          text: t.logout,
           style: 'destructive',
           onPress: async () => {
             await logout();
@@ -125,22 +127,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose, navigation }
             >
               <MenuItem
                 icon="home"
-                title="Home"
+                title={t.home}
                 onPress={() => handleNavigation('Home')}
               />
               <MenuItem
                 icon="chatbubbles"
-                title="AI Coach Chat"
+                title={t.aiCoachChat}
                 onPress={() => handleNavigation('Chat')}
               />
               <MenuItem
                 icon="person"
-                title="Profile"
+                title={t.profile}
                 onPress={() => handleNavigation('Profile')}
               />
               <MenuItem
                 icon="settings"
-                title="Settings"
+                title={t.settings}
                 onPress={() => handleNavigation('Profile')}
               />
 
@@ -196,12 +198,50 @@ export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose, navigation }
                 </View>
               </View>
               
+              {/* Language Selector */}
+              <View style={styles.divider} />
+              <View style={styles.languageSection}>
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+                  {t.language}
+                </Text>
+                <View style={styles.languageOptions}>
+                  {languageOptions.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.languageOption,
+                        { backgroundColor: colors.card },
+                        language === opt.value && [
+                          styles.languageOptionActive,
+                          { borderColor: colors.primary, backgroundColor: colors.primary + '15' },
+                        ],
+                      ]}
+                      onPress={() => setLanguage(opt.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.languageOptionText,
+                          {
+                            color:
+                              language === opt.value ? colors.primary : colors.textSecondary,
+                            fontWeight: language === opt.value ? '700' : '500',
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {opt.nativeLabel}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
               {!user?.isPremium && (
                 <>
                   <View style={styles.divider} />
                   <MenuItem
                     icon="star"
-                    title="Upgrade to Premium"
+                    title={t.upgradeToPremium}
                     onPress={() => {
                       onClose();
                       navigation.navigate('Payment');
@@ -220,7 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose, navigation }
               >
                 <Ionicons name="log-out-outline" size={24} color={colors.error} />
                 <Text style={[styles.logoutText, { color: colors.error }]}>
-                  Logout
+                  {t.logout}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -374,6 +414,39 @@ const styles = StyleSheet.create({
   themeOptions: {
     flexDirection: 'row',
     gap: Spacing.sm,
+  },
+  languageSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  sectionLabel: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: Spacing.sm,
+  },
+  languageOptions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  languageOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minHeight: 40,
+  },
+  languageOptionActive: {
+    borderWidth: 2,
+  },
+  languageOptionText: {
+    fontSize: FontSizes.xs,
+    textAlign: 'center',
   },
   themeOption: {
     flex: 1,

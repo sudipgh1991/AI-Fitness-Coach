@@ -1,58 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as SplashScreen from 'expo-splash-screen';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import AppNavigator from './navigation/AppNavigator';
+import SplashScreen from './screens/SplashScreen';
 
 export default function App() {
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     async function prepare() {
       try {
-        // Prevent splash from auto-hiding
-        await SplashScreen.preventAutoHideAsync();
-        console.log('App: Loading fonts...');
-        
-        // Pre-load fonts
-        await Font.loadAsync({
-          ...Ionicons.font,
-        });
-        
-        console.log('App: Fonts loaded');
+        await ExpoSplashScreen.preventAutoHideAsync();
+        await Font.loadAsync({ ...Ionicons.font });
       } catch (e) {
-        console.warn('App: Error:', e);
+        console.warn('App: Error loading fonts:', e);
       } finally {
-        setAppIsReady(true);
-        // Hide splash screen
-        setTimeout(async () => {
-          await SplashScreen.hideAsync();
-          console.log('App: Splash hidden');
-        }, 100);
+        setFontsLoaded(true);
+        await ExpoSplashScreen.hideAsync();
       }
     }
 
     prepare();
   }, []);
 
-  if (!appIsReady) {
+  // Show nothing while native splash is up
+  if (!fontsLoaded) {
     return null;
+  }
+
+  // Show custom animated splash after fonts load
+  if (!splashDone) {
+    return <SplashScreen onFinish={() => setSplashDone(true)} />;
   }
 
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider>
-          <AuthProvider>
-            <StatusBar style="auto" />
-            <AppNavigator />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <StatusBar style="auto" />
+              <AppNavigator />
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

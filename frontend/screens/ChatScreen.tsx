@@ -20,6 +20,8 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LANGUAGE_OPTIONS } from '../constants/translations';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { ChatMessage, NutritionalInfo } from '../types';
 
@@ -542,17 +544,42 @@ const foodMenuItems: FoodMenuItem[] = [
 export default function ChatScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const { language, setLanguage, t } = useLanguage();
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: '1',
+      role: 'assistant' as const,
+      content: t.chatInitialMessage,
+      timestamp: new Date(Date.now() - 300000).toISOString(),
+    },
+  ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showFoodMenu, setShowFoodMenu] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [selectedFoodItems, setSelectedFoodItems] = useState<FoodMenuItem[]>([]);
   const flatListRef = useRef<FlatList>(null);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // When language changes after the first render, append a new welcome in the new language
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const welcomeMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: t.chatInitialMessage,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, welcomeMsg]);
+  }, [language]);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -728,7 +755,7 @@ export default function ChatScreen() {
             const assistantMessage: ChatMessage = {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: `Great! I've analyzed your food image. Here's what I found:`,
+              content: t.foodAnalyzedImage,
               timestamp: new Date().toISOString(),
               nutritionalInfo,
             };
@@ -783,7 +810,7 @@ export default function ChatScreen() {
             const assistantMessage: ChatMessage = {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: `Perfect! I've analyzed your food photo. Here's the nutritional breakdown:`,
+              content: t.foodAnalyzedPhoto,
               timestamp: new Date().toISOString(),
               nutritionalInfo,
             };
@@ -802,19 +829,19 @@ export default function ChatScreen() {
 
   const showImageOptions = () => {
     Alert.alert(
-      'Upload Food Image',
-      'Choose how to add your food image',
+      t.uploadFoodImage,
+      t.chooseHowToAdd,
       [
         {
-          text: 'Take Photo',
+          text: t.takePhoto,
           onPress: takePhoto,
         },
         {
-          text: 'Choose from Gallery',
+          text: t.chooseFromGallery,
           onPress: pickImage,
         },
         {
-          text: 'Cancel',
+          text: t.cancel,
           style: 'cancel',
         },
       ],
@@ -847,7 +874,7 @@ export default function ChatScreen() {
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: `Perfect! I've analyzed your food intake:`,
+          content: t.foodAnalyzedText,
           timestamp: new Date().toISOString(),
           nutritionalInfo,
         };
@@ -864,7 +891,7 @@ export default function ChatScreen() {
           method: 'POST',
           url: 'https://ihfqb9149k.execute-api.us-east-1.amazonaws.com/dev/GetAIRecommendation',
           data: {
-            question: messageText,
+            question: t.languageInstruction + messageText,
           },
           headers: {
             'Content-Type': 'application/json',
@@ -1069,10 +1096,10 @@ export default function ChatScreen() {
 
               <TouchableOpacity
                 style={[styles.logFoodButton, { backgroundColor: colors.primary }]}
-                onPress={() => Alert.alert('Success', 'Food logged to your nutrition diary!')}
+                onPress={() => Alert.alert(t.success, t.foodLoggedSuccess)}
               >
                 <Ionicons name="add-circle-outline" size={18} color="#FFF" />
-                <Text style={styles.logFoodText}>Log to Nutrition Diary</Text>
+                <Text style={styles.logFoodText}>{t.logToNutritionDiary}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -1179,8 +1206,8 @@ export default function ChatScreen() {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: selectedFoodItems.length === 1 
-          ? `Great choice! Here's the nutritional information:` 
-          : `Perfect! Here's the combined nutritional information for your ${selectedFoodItems.length} items:`,
+          ? t.greatChoice
+          : t.combinedNutrition(selectedFoodItems.length),
         timestamp: new Date().toISOString(),
         nutritionalInfo: totalNutrition,
       };
@@ -1210,11 +1237,11 @@ export default function ChatScreen() {
             <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  Select Food Items
+                  {t.selectFoodItems}
                 </Text>
                 {selectedFoodItems.length > 0 && (
                   <Text style={[styles.selectionCount, { color: colors.primary }]}>
-                    {selectedFoodItems.length} item{selectedFoodItems.length > 1 ? 's' : ''} selected
+                    {t.itemsSelected(selectedFoodItems.length)}
                   </Text>
                 )}
               </View>
@@ -1281,7 +1308,7 @@ export default function ChatScreen() {
                   onPress={() => setSelectedFoodItems([])}
                 >
                   <Text style={[styles.clearButtonText, { color: colors.text }]}>
-                    Clear All
+                    {t.clearAll}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1290,7 +1317,7 @@ export default function ChatScreen() {
                 >
                   <Ionicons name="calculator" size={18} color="#FFF" />
                   <Text style={styles.calculateButtonText}>
-                    Calculate ({selectedFoodItems.length})
+                    {t.calculate(selectedFoodItems.length)}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1327,30 +1354,40 @@ export default function ChatScreen() {
         </View>
         <View style={styles.headerInfo}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            AI Fitness Coach
+            {t.aiFitnessCoach}
           </Text>
           <Text style={[styles.headerStatus, { color: colors.success }]}>
-            ● Online
+            {t.online}
           </Text>
         </View>
+        {/* Language selector button */}
+        <TouchableOpacity
+          style={[styles.langButton, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}
+          onPress={() => setShowLanguageModal(true)}
+        >
+          <Ionicons name="globe-outline" size={18} color={colors.primary} />
+          <Text style={[styles.langButtonText, { color: colors.primary }]}>
+            {LANGUAGE_OPTIONS.find(o => o.value === language)?.nativeLabel ?? 'EN'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Quick Actions */}
       <View style={styles.quickActionsContainer}>
         <QuickAction
           icon="restaurant-outline"
-          label="Food Menu"
+          label={t.foodMenu}
           onPress={() => setShowFoodMenu(true)}
         />
         <QuickAction
           icon="barbell"
-          label="Workout"
-          onPress={() => setInputText("Create a workout plan for me")}
+          label={t.workout}
+          onPress={() => setInputText(t.workoutPlanRequest)}
         />
         <QuickAction
           icon="trending-up"
-          label="Progress"
-          onPress={() => setInputText("How can I track my progress?")}
+          label={t.progress}
+          onPress={() => setInputText(t.progressTrackingRequest)}
         />
       </View>
 
@@ -1370,7 +1407,7 @@ export default function ChatScreen() {
         <View style={[styles.analyzingContainer, { backgroundColor: colors.card }]}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.analyzingText, { color: colors.text }]}>
-            Analyzing food image...
+            {t.analyzingFood}
           </Text>
         </View>
       )}
@@ -1387,7 +1424,7 @@ export default function ChatScreen() {
         
         <TextInput
           style={[styles.input, { color: colors.text }]}
-          placeholder="Type food name or ask anything..."
+          placeholder={t.typeFoodOrAsk}
           placeholderTextColor={colors.textSecondary}
           value={inputText}
           onChangeText={setInputText}
@@ -1409,6 +1446,58 @@ export default function ChatScreen() {
       </View>
       </KeyboardAvoidingView>
 
+      {/* Language Picker Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.langModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLanguageModal(false)}
+        >
+          <View style={[styles.langModalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.langModalTitle, { color: colors.text }]}>
+              {t.language}
+            </Text>
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.langModalOption,
+                  { borderBottomColor: colors.border },
+                  language === opt.value && { backgroundColor: colors.primary + '12' },
+                ]}
+                onPress={() => {
+                  setLanguage(opt.value);
+                  setShowLanguageModal(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.langModalOptionText,
+                    {
+                      color: language === opt.value ? colors.primary : colors.text,
+                      fontWeight: language === opt.value ? '700' : '500',
+                    },
+                  ]}
+                >
+                  {opt.nativeLabel}
+                </Text>
+                <Text style={[styles.langModalOptionSub, { color: colors.textSecondary }]}>
+                  {opt.label}
+                </Text>
+                {language === opt.value && (
+                  <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Food Menu Modal */}
       {renderFoodMenu()}
     </SafeAreaView>
@@ -1420,16 +1509,6 @@ const formatTime = (timestamp: string) => {
   const date = new Date(timestamp);
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 };
-
-// Initial messages
-const initialMessages: ChatMessage[] = [
-  {
-    id: '1',
-    role: 'assistant',
-    content: "Hello! 👋 I'm your AI fitness coach. I'm here to help you achieve your health and fitness goals!\n\nI can assist you with:\n- Creating personalized workout plans\n- Suggesting healthy meal plans\n- Tracking your progress\n- Answering fitness questions\n- Providing motivation and tips\n\nHow can I help you today?",
-    timestamp: new Date(Date.now() - 300000).toISOString(),
-  },
-];
 
 const styles = StyleSheet.create({
   container: {
@@ -1755,5 +1834,60 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: FontSizes.md,
     fontWeight: '700',
+  },
+  // Language selector button in header
+  langButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  langButtonText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '700',
+  },
+  // Language picker modal
+  langModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  langModalCard: {
+    width: '75%',
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+    paddingTop: Spacing.lg,
+  },
+  langModalTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  langModalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderBottomWidth: 1,
+    gap: Spacing.sm,
+  },
+  langModalOptionText: {
+    fontSize: FontSizes.md,
+    flex: 1,
+  },
+  langModalOptionSub: {
+    fontSize: FontSizes.sm,
+    marginRight: Spacing.xs,
   },
 });

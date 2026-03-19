@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
@@ -21,21 +22,20 @@ import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 export default function ProfileScreen({ navigation }: any) {
   const { colors, theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      t.logoutConfirmTitle,
+      t.logoutConfirmMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Logout',
+          text: t.logout,
           style: 'destructive',
           onPress: async () => {
             await logout();
-            // Navigation will automatically switch to Login screen
-            // via AuthContext changing isAuthenticated to false
           },
         },
       ]
@@ -44,30 +44,24 @@ export default function ProfileScreen({ navigation }: any) {
 
   const handleResetOnboarding = () => {
     Alert.alert(
-      'Reset Onboarding',
-      'This will clear onboarding data and restart the app flow. You will be taken back to the onboarding screens.',
+      t.resetOnboardingTitle,
+      t.resetOnboardingMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Reset',
+          text: t.resetButton,
           style: 'destructive',
           onPress: async () => {
             try {
-              // First logout to clear auth state
               await logout();
-              
-              // Then clear onboarding data
               await AsyncStorage.removeItem('hasCompletedOnboarding');
               await AsyncStorage.removeItem('onboardingData');
               await AsyncStorage.removeItem('coachGender');
               await AsyncStorage.removeItem('coachStyle');
               await AsyncStorage.removeItem('selfAssessmentData');
-              
-              // The app will now show onboarding screens on next render
-              // because hasCompletedOnboarding is false and isAuthenticated is false
             } catch (error) {
               console.error('Error resetting onboarding:', error);
-              Alert.alert('Error', 'Failed to reset onboarding');
+              Alert.alert('Error', t.resetOnboardingError);
             }
           },
         },
@@ -146,96 +140,96 @@ export default function ProfileScreen({ navigation }: any) {
           {user?.isPremium && (
             <View style={styles.premiumBadge}>
               <Ionicons name="star" size={16} color="#FFD700" />
-              <Text style={styles.premiumText}>Premium Member</Text>
+              <Text style={styles.premiumText}>{t.premiumMember}</Text>
             </View>
           )}
         </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
-          <StatBox label="Weight" value="75" unit="kg" />
-          <StatBox label="Height" value="175" unit="cm" />
-          <StatBox label="Age" value="28" unit="yrs" />
-          <StatBox label="BMI" value="24.5" unit="" />
+          <StatBox label={t.statWeight} value="75" unit={t.statUnitKg} />
+          <StatBox label={t.statHeight} value="175" unit={t.statUnitCm} />
+          <StatBox label={t.statAge} value="28" unit={t.statUnitYrs} />
+          <StatBox label={t.statBMI} value="24.5" unit="" />
         </View>
 
         {/* Fitness Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Fitness</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionFitness}</Text>
         <MenuItem
           icon="barbell-outline"
-          title="Workout History"
-          subtitle="View your past workouts"
+          title={t.workoutHistory}
+          subtitle={t.workoutHistorySub}
           onPress={() => navigation.navigate('Home', { screen: 'WorkoutHistory' })}
         />
         <MenuItem
           icon="body-outline"
-          title="Body Measurements"
-          subtitle="Track your body composition"
+          title={t.bodyMeasurements}
+          subtitle={t.bodyMeasurementsSub}
           onPress={() => navigation.navigate('BodyMeasurements')}
         />
         <MenuItem
           icon="images-outline"
-          title="Progress Photos"
-          subtitle="Before and after photos"
+          title={t.progressPhotos}
+          subtitle={t.progressPhotosSub}
           onPress={() => navigation.navigate('ProgressPhotos')}
         />
         <MenuItem
           icon="trophy-outline"
-          title="Achievements"
-          subtitle="Badges and milestones"
+          title={t.achievements}
+          subtitle={t.achievementsSub}
           onPress={() => navigation.navigate('Achievements')}
         />
 
         {/* Nutrition Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Nutrition</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionNutrition}</Text>
         <MenuItem
           icon="nutrition-outline"
-          title="Meal History"
-          subtitle="View your nutrition log"
+          title={t.mealHistory}
+          subtitle={t.mealHistorySub}
           onPress={() => navigation.navigate('Home', { screen: 'Nutrition' })}
         />
         <MenuItem
           icon="restaurant-outline"
-          title="Recipes"
-          subtitle="Healthy meal ideas"
+          title={t.recipes}
+          subtitle={t.recipesMenuSub}
           onPress={() => navigation.navigate('Home', { screen: 'Recipes' })}
         />
         <MenuItem
           icon="analytics-outline"
-          title="Habits & Cravings"
-          subtitle="Analyze eating patterns"
+          title={t.habitsAndCravings}
+          subtitle={t.habitsAndCravingsSub}
           onPress={() => navigation.navigate('Home', { screen: 'HabitsAnalysis' })}
         />
 
         {/* Health & Wellness Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Health & Wellness</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionHealthWellness}</Text>
         <MenuItem
           icon="calendar-outline"
-          title="Period Tracker"
-          subtitle="Track your menstrual cycle"
+          title={t.periodTracker}
+          subtitle={t.periodTrackerSub}
           onPress={() => navigation.navigate('PeriodTracker')}
         />
 
         {/* Rewards Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Rewards</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionRewards}</Text>
         <MenuItem
           icon="gift-outline"
-          title="Refer & Earn"
-          subtitle="Share your code and get rewards"
+          title={t.referAndEarn}
+          subtitle={t.referAndEarnSub}
           onPress={() => navigation.navigate('Referral')}
         />
 
         {/* Settings Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionSettings}</Text>
         <MenuItem
           icon="notifications-outline"
-          title="Reminders"
-          subtitle="Manage your notifications"
+          title={t.reminders}
+          subtitle={t.remindersSub}
           onPress={() => navigation.navigate('Reminders')}
         />
 
         {/* Theme Settings */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionAppearance}</Text>
         <Card>
           <View style={styles.themeOptions}>
             <TouchableOpacity
@@ -257,7 +251,7 @@ export default function ProfileScreen({ navigation }: any) {
                 styles.themeText,
                 { color: theme === 'light' ? '#FFF' : colors.text },
               ]}>
-                Light
+                {t.themeLight}
               </Text>
             </TouchableOpacity>
 
@@ -280,7 +274,7 @@ export default function ProfileScreen({ navigation }: any) {
                 styles.themeText,
                 { color: theme === 'dark' ? '#FFF' : colors.text },
               ]}>
-                Dark
+                {t.themeDark}
               </Text>
             </TouchableOpacity>
 
@@ -303,93 +297,93 @@ export default function ProfileScreen({ navigation }: any) {
                 styles.themeText,
                 { color: theme === 'system' ? '#FFF' : colors.text },
               ]}>
-                System
+                {t.themeSystem}
               </Text>
             </TouchableOpacity>
           </View>
         </Card>
 
         {/* Settings */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionSettings}</Text>
         <Card>
           <MenuItem
             icon="person"
-            title="Edit Profile"
-            subtitle="Update your personal information"
+            title={t.editProfile}
+            subtitle={t.editProfileSub}
             onPress={() => navigation.navigate('EditProfile')}
           />
           <MenuItem
             icon="trophy"
-            title="Goals"
-            subtitle="Manage your fitness goals"
+            title={t.goalsMenu}
+            subtitle={t.goalsMenuSub}
             onPress={() => navigation.navigate('Goals')}
           />
           <MenuItem
             icon="notifications"
-            title="Notifications"
-            subtitle="Push notifications & reminders"
+            title={t.notifications}
+            subtitle={t.notificationsSub}
             onPress={() => navigation.navigate('Notifications')}
           />
           <MenuItem
             icon="shield-checkmark"
-            title="Privacy & Security"
-            subtitle="Manage your privacy settings"
+            title={t.privacySecurity}
+            subtitle={t.privacySecuritySub}
             onPress={() => navigation.navigate('Privacy')}
           />
         </Card>
 
         {/* Support */}
-        <Card title="Support">
+        <Card title={t.profileSectionSupport}>
           <MenuItem
             icon="help-circle"
-            title="Help Center"
-            subtitle="Get help with any issues"
+            title={t.helpCenter}
+            subtitle={t.helpCenterSub}
             onPress={() => {}}
           />
           <MenuItem
             icon="chatbubbles"
-            title="Contact Support"
-            subtitle="We're here to help"
+            title={t.contactSupport}
+            subtitle={t.contactSupportSub}
             onPress={() => {}}
           />
           <MenuItem
             icon="document-text"
-            title="Terms & Conditions"
-            subtitle="Read our terms"
+            title={t.termsAndConditions}
+            subtitle={t.termsAndConditionsSub}
             onPress={() => {}}
           />
           <MenuItem
             icon="shield"
-            title="Privacy Policy"
-            subtitle="How we protect your data"
+            title={t.privacyPolicy}
+            subtitle={t.privacyPolicySub}
             onPress={() => {}}
           />
         </Card>
 
         {/* About */}
-        <Card title="About">
+        <Card title={t.profileSectionAbout}>
           <MenuItem
             icon="information-circle"
-            title="App Version"
+            title={t.appVersion}
             subtitle="1.0.0"
             onPress={() => {}}
             showArrow={false}
           />
           <MenuItem
             icon="star"
-            title="Rate Us"
-            subtitle="Share your feedback"
+            title={t.rateUs}
+            subtitle={t.rateUsSub}
             onPress={() => {}}
           />
         </Card>
 
         {/* Debug Section - Development Only */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Developer Options</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.profileSectionDeveloper}</Text>
         <Card>
           <MenuItem
             icon="refresh"
-            title="Reset Onboarding"
-            subtitle="View onboarding screens again"
+            title={t.resetOnboarding}
+            subtitle={t.resetOnboardingSub}
             onPress={handleResetOnboarding}
           />
         </Card>
@@ -397,7 +391,7 @@ export default function ProfileScreen({ navigation }: any) {
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
           <Button
-            title="Logout"
+            title={t.logout}
             onPress={handleLogout}
             variant="outline"
             fullWidth

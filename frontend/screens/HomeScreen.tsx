@@ -13,6 +13,7 @@ import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Sidebar } from '../components/Sidebar';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
@@ -22,6 +23,7 @@ const screenWidth = Dimensions.get('window').width;
 export default function HomeScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // Mock data - Enhanced fitness tracking
@@ -166,7 +168,7 @@ export default function HomeScreen({ navigation }: any) {
                 />
               </View>
               <Text style={[styles.statCardGoal, { color: colors.textSecondary }]}>
-                Goal: {goal} {unit}
+                {t.statGoal} {goal} {unit}
               </Text>
             </View>
           )}
@@ -194,23 +196,23 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
-                Hello, {user?.name || 'User'}! 👋
+                {t.greeting(user?.name || t.user)}
               </Text>
               <Text style={styles.motivationText}>
-                Let's crush your goals today!
+                {t.motivationText}
               </Text>
             </View>
             <View style={styles.streakContainer}>
               <Ionicons name="flame" size={24} color="#FFD700" />
               <Text style={styles.streakText}>{todayStats.streak}</Text>
-              <Text style={styles.streakLabel}>day streak</Text>
+              <Text style={styles.streakLabel}>{t.dayStreak}</Text>
             </View>
           </View>
         </LinearGradient>
 
         {/* Today's Goals - Ring Progress */}
         <View style={styles.goalsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Goals</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.todaysGoals}</Text>
           <View style={[styles.modernChartCard, { backgroundColor: colors.card }]}>
             <LinearGradient
               colors={[colors.primary + '08', colors.card]}
@@ -245,7 +247,7 @@ export default function HomeScreen({ navigation }: any) {
                   <Ionicons name="footsteps" size={16} color={colors.primary} style={styles.legendIcon} />
                 </View>
                 <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>Steps</Text>
+                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.steps}</Text>
                   <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
                     {todayStats.steps.toLocaleString()} / {todayStats.stepsGoal.toLocaleString()}
                   </Text>
@@ -260,7 +262,7 @@ export default function HomeScreen({ navigation }: any) {
                   <Ionicons name="flame" size={16} color={colors.secondary} style={styles.legendIcon} />
                 </View>
                 <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>Calories</Text>
+                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.calories}</Text>
                   <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
                     {todayStats.calories} / {todayStats.caloriesGoal}
                   </Text>
@@ -275,7 +277,7 @@ export default function HomeScreen({ navigation }: any) {
                   <Ionicons name="timer" size={16} color={colors.success} style={styles.legendIcon} />
                 </View>
                 <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>Active Time</Text>
+                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.activeTime}</Text>
                   <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
                     {todayStats.activeMinutes} / {todayStats.activeMinutesGoal}
                   </Text>
@@ -307,41 +309,41 @@ export default function HomeScreen({ navigation }: any) {
                       <Ionicons name="star" size={32} color="#FFF" />
                     </View>
                     <View style={styles.premiumPill}>
-                      <Text style={styles.premiumPillText}>LIMITED OFFER</Text>
+                      <Text style={styles.premiumPillText}>{t.limitedOffer}</Text>
                     </View>
                   </View>
                   
-                  <Text style={styles.premiumTitle}>Upgrade to Premium</Text>
+                  <Text style={styles.premiumTitle}>{t.upgradeToPremiumTitle}</Text>
                   <Text style={styles.premiumSubtitle}>
-                    Unlock all features and get personalized coaching
+                    {t.premiumSubtitle}
                   </Text>
 
                   <View style={styles.premiumFeatures}>
                     <View style={styles.featureRow}>
                       <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                      <Text style={styles.featureText}>Unlimited AI Coach Sessions</Text>
+                      <Text style={styles.featureText}>{t.unlimitedAICoach}</Text>
                     </View>
                     <View style={styles.featureRow}>
                       <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                      <Text style={styles.featureText}>Advanced Analytics & Insights</Text>
+                      <Text style={styles.featureText}>{t.advancedAnalytics}</Text>
                     </View>
                     <View style={styles.featureRow}>
                       <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                      <Text style={styles.featureText}>Custom Meal & Workout Plans</Text>
+                      <Text style={styles.featureText}>{t.customMealWorkout}</Text>
                     </View>
                     <View style={styles.featureRow}>
                       <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                      <Text style={styles.featureText}>Priority Support</Text>
+                      <Text style={styles.featureText}>{t.prioritySupport}</Text>
                     </View>
                   </View>
 
                   <View style={styles.premiumPricing}>
                     <Text style={styles.priceText}>$9.99</Text>
-                    <Text style={styles.priceSubtext}>/month</Text>
+                    <Text style={styles.priceSubtext}>{t.perMonth}</Text>
                   </View>
 
                   <View style={styles.upgradeButton}>
-                    <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
+                    <Text style={styles.upgradeButtonText}>{t.upgradeNow}</Text>
                     <Ionicons name="arrow-forward" size={20} color="#FF8C00" />
                   </View>
                 </View>
@@ -379,7 +381,7 @@ export default function HomeScreen({ navigation }: any) {
                 {todayStats.steps.toLocaleString()}
               </Text>
               <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                STEPS
+                {t.stepsLabel}
               </Text>
             </TouchableOpacity>
 
@@ -405,7 +407,7 @@ export default function HomeScreen({ navigation }: any) {
                 {todayStats.caloriesBurned}
               </Text>
               <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                CAL BURNED
+                {t.calBurned}
               </Text>
             </TouchableOpacity>
 
@@ -431,7 +433,7 @@ export default function HomeScreen({ navigation }: any) {
                 {todayStats.water}/{todayStats.waterGoal}
               </Text>
               <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                GLASSES
+                {t.glasses}
               </Text>
             </TouchableOpacity>
 
@@ -457,7 +459,7 @@ export default function HomeScreen({ navigation }: any) {
                 {todayStats.sleep}h
               </Text>
               <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                SLEEP
+                {t.sleep}
               </Text>
             </TouchableOpacity>
           </View>
@@ -468,7 +470,7 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.statsGrid}>
             <StatCard
               icon="footsteps"
-              title="Steps"
+              title={t.steps}
               value={todayStats.steps.toLocaleString()}
               unit=""
               goal={todayStats.stepsGoal.toLocaleString()}
@@ -476,7 +478,7 @@ export default function HomeScreen({ navigation }: any) {
             />
             <StatCard
               icon="flame"
-              title="Calories"
+              title={t.calories}
               value={todayStats.calories}
               unit="kcal"
               goal={todayStats.caloriesGoal}
@@ -484,7 +486,7 @@ export default function HomeScreen({ navigation }: any) {
             />
             <StatCard
               icon="timer"
-              title="Active Time"
+              title={t.activeTime}
               value={todayStats.activeMinutes}
               unit="min"
               goal={todayStats.activeMinutesGoal}
@@ -492,7 +494,7 @@ export default function HomeScreen({ navigation }: any) {
             />
             <StatCard
               icon="navigate"
-              title="Distance"
+              title={t.distance}
               value={todayStats.distance}
               unit="km"
               goal={null}
@@ -503,7 +505,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Weekly Steps Chart */}
         <View style={styles.chartSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Steps</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.weeklySteps}</Text>
           <View style={[styles.modernChartCard, { backgroundColor: colors.card }]}>
             <LinearGradient
               colors={[colors.primary + '10', colors.card]}
@@ -536,11 +538,11 @@ export default function HomeScreen({ navigation }: any) {
             <View style={styles.chartFooter}>
               <View style={styles.chartStat}>
                 <Ionicons name="trending-up" size={16} color={colors.success} />
-                <Text style={[styles.chartStatText, { color: colors.text }]}>Avg: 8,563</Text>
+                <Text style={[styles.chartStatText, { color: colors.text }]}>{t.avg}: 8,563</Text>
               </View>
               <View style={styles.chartStat}>
                 <Ionicons name="footsteps" size={16} color={colors.primary} />
-                <Text style={[styles.chartStatText, { color: colors.text }]}>Total: 59,942</Text>
+                <Text style={[styles.chartStatText, { color: colors.text }]}>{t.total}: 59,942</Text>
               </View>
             </View>
           </View>
@@ -548,7 +550,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Weekly Calories Chart */}
         <View style={styles.chartSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Calories</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.weeklyCalories}</Text>
           <View style={[styles.modernChartCard, { backgroundColor: colors.card }]}>
             <LinearGradient
               colors={[colors.secondary + '10', colors.card]}
@@ -577,11 +579,11 @@ export default function HomeScreen({ navigation }: any) {
             <View style={styles.chartFooter}>
               <View style={styles.chartStat}>
                 <Ionicons name="trending-up" size={16} color={colors.success} />
-                <Text style={[styles.chartStatText, { color: colors.text }]}>Avg: 1,979</Text>
+                <Text style={[styles.chartStatText, { color: colors.text }]}>{t.avg}: 1,979</Text>
               </View>
               <View style={styles.chartStat}>
                 <Ionicons name="flame" size={16} color={colors.secondary} />
-                <Text style={[styles.chartStatText, { color: colors.text }]}>Total: 13,850</Text>
+                <Text style={[styles.chartStatText, { color: colors.text }]}>{t.total}: 13,850</Text>
               </View>
             </View>
           </View>
@@ -590,9 +592,9 @@ export default function HomeScreen({ navigation }: any) {
         {/* AI Coach Features */}
         <View style={styles.aiCoachSection}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>🤖 AI Coach Features</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.aiCoachFeatures}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AIInsights')}>
-              <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>{t.viewAll}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiCoachScroll}>
@@ -609,8 +611,8 @@ export default function HomeScreen({ navigation }: any) {
               >
                 <Ionicons name="water" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Water</Text>
-              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Track intake</Text>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>{t.water}</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>{t.trackIntake}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -626,8 +628,8 @@ export default function HomeScreen({ navigation }: any) {
               >
                 <Ionicons name="walk" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Steps</Text>
-              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Daily activity</Text>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>{t.steps}</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>{t.dailyActivity}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -643,8 +645,8 @@ export default function HomeScreen({ navigation }: any) {
               >
                 <Ionicons name="calendar" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Weekly Review</Text>
-              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>See progress</Text>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>{t.weeklyReview}</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>{t.seeProgress}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -660,8 +662,8 @@ export default function HomeScreen({ navigation }: any) {
               >
                 <Ionicons name="stats-chart" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>Dashboard</Text>
-              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>All metrics</Text>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>{t.dashboard}</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>{t.allMetrics}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -677,15 +679,15 @@ export default function HomeScreen({ navigation }: any) {
               >
                 <Ionicons name="bulb" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>AI Insights</Text>
-              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>Smart tips</Text>
+              <Text style={[styles.aiCoachCardTitle, { color: colors.text }]}>{t.aiInsights}</Text>
+              <Text style={[styles.aiCoachCardSubtitle, { color: colors.textSecondary }]}>{t.smartTips}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.quickActions}</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary }]}
@@ -695,7 +697,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.iconCircle}>
                 <Ionicons name="barbell" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Workout Plans</Text>
+              <Text style={styles.actionText}>{t.workoutPlans}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.secondary }]}
@@ -705,7 +707,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.iconCircle}>
                 <Ionicons name="restaurant" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Recipes</Text>
+              <Text style={styles.actionText}>{t.recipes}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.success }]}
@@ -715,7 +717,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.iconCircle}>
                 <Ionicons name="trophy" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>My Goals</Text>
+              <Text style={styles.actionText}>{t.myGoals}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.info }]}
@@ -725,7 +727,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.iconCircle}>
                 <Ionicons name="analytics" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Habits</Text>
+              <Text style={styles.actionText}>{t.habits}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: '#F59E0B' }]}
@@ -735,7 +737,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.iconCircle}>
                 <Ionicons name="star" size={28} color="#FFF" />
               </View>
-              <Text style={styles.actionText}>Success Stories</Text>
+              <Text style={styles.actionText}>{t.successStories}</Text>
             </TouchableOpacity>
           </View>
         </View>
