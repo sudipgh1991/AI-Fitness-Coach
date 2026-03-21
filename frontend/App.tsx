@@ -36,11 +36,6 @@ export default function App() {
     return null;
   }
 
-  // Show custom animated splash after fonts load
-  if (!splashDone) {
-    return <SplashScreen onFinish={() => setSplashDone(true)} />;
-  }
-
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -48,7 +43,11 @@ export default function App() {
           <LanguageProvider>
             <AuthProvider>
               <StatusBar style="auto" />
-              <AppNavigator />
+              {splashDone ? (
+                <AppNavigator />
+              ) : (
+                <SplashScreen onFinish={() => setSplashDone(true)} />
+              )}
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
