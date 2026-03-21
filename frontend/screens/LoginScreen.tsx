@@ -16,6 +16,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
 import { Spacing, FontSizes } from '../constants/theme';
@@ -24,12 +25,13 @@ import { User } from '../types';
 export default function LoginScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendOTP = async () => {
     if (!phoneNumber || phoneNumber.length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+      Alert.alert(t.error, t.validPhoneError);
       return;
     }
 
@@ -101,22 +103,22 @@ export default function LoginScreen({ navigation }: any) {
             <Ionicons name="fitness" size={64} color={colors.primary} />
             <Text style={[styles.title, { color: colors.text }]}>Fitzen</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Your Personal Fitness Assistant
+              {t.loginSubtitle}
             </Text>
           </View>
 
           <View style={styles.form}>
             <InputField
-              label="Phone Number"
+              label={t.phoneNumberLabel}
               value={phoneNumber}
               onChangeText={setPhoneNumber}
-              placeholder="Enter your phone number"
+              placeholder={t.enterPhoneNumber}
               keyboardType="phone-pad"
               icon="call"
             />
 
             <Button
-              title="Send OTP"
+              title={t.sendOTP}
               onPress={handleSendOTP}
               loading={isLoading}
               fullWidth
@@ -124,7 +126,7 @@ export default function LoginScreen({ navigation }: any) {
 
             <View style={styles.divider}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>OR</Text>
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>{t.or}</Text>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
@@ -134,7 +136,7 @@ export default function LoginScreen({ navigation }: any) {
             >
               <Ionicons name="logo-google" size={24} color="#DB4437" />
               <Text style={[styles.socialButtonText, { color: colors.text }]}>
-                Continue with Google
+                {t.continueWithGoogle}
               </Text>
             </TouchableOpacity>
 
@@ -151,7 +153,7 @@ export default function LoginScreen({ navigation }: any) {
 
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              By continuing, you agree to our Terms of Service and Privacy Policy
+              {t.termsText}
             </Text>
           </View>
         </ScrollView>

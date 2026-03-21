@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes } from '../constants/theme';
 
 interface Exercise {
@@ -385,6 +386,7 @@ const WORKOUT_PLANS: WorkoutPlan[] = [
 
 export default function WorkoutPlansScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedPlanId, setSelectedPlanId] = useState<string>('home_level2');
   const [expandedDay, setExpandedDay] = useState<number | null>(0);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
@@ -426,7 +428,7 @@ export default function WorkoutPlansScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Workout Plans</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.workoutPlans}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -550,7 +552,7 @@ export default function WorkoutPlansScreen({ navigation }: any) {
         {/* Notes */}
         {selectedPlan.notes && selectedPlan.notes.length > 0 ? (
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Notes</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.wpNotesTitle}</Text>
             {selectedPlan.notes.map((note, i) => (
               <View key={i} style={styles.noteRow}>
                 <Text style={[styles.noteBullet, { color: colors.primary }]}>{'•'}</Text>
@@ -563,7 +565,7 @@ export default function WorkoutPlansScreen({ navigation }: any) {
         {/* Additional Resources */}
         {selectedPlan.additionalVideos && selectedPlan.additionalVideos.length > 0 ? (
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Additional Resources</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.wpAdditionalResourcesTitle}</Text>
             {selectedPlan.additionalVideos.map((video, vIndex) => {
               const additionalKey = `additional-${selectedPlanId}-${vIndex}`;
               const isPlaying = playingVideo === additionalKey;

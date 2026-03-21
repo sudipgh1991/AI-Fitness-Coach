@@ -8,6 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -16,6 +17,7 @@ interface SplashScreenProps {
 }
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
+  const { t } = useLanguage();
   const ringScale      = useRef(new Animated.Value(0.3)).current;
   const ringOpacity    = useRef(new Animated.Value(0.7)).current;
   const logoScale      = useRef(new Animated.Value(0)).current;
@@ -139,13 +141,13 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
       {/* Tagline */}
       <Animated.Text style={[styles.tagline, { opacity: taglineOpacity }]}>
-        Your AI Fitness Coach
+        {t.splashTagline}
       </Animated.Text>
 
       {/* Bottom branding */}
       <Animated.View style={[styles.bottomBranding, { opacity: bottomOpacity }]}>
         <View style={styles.divider} />
-        <Text style={styles.poweredBy}>Powered by AI</Text>
+        <Text style={styles.poweredBy}>{t.splashPoweredBy}</Text>
       </Animated.View>
     </Animated.View>
   );

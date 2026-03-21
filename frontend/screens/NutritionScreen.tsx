@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressChart, BarChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
@@ -30,8 +31,7 @@ interface Meal {
 
 export default function NutritionScreen({ navigation }: any) {
   const { colors } = useTheme();
-
-  // Mock nutrition data
+  const { t } = useLanguage();
   const todayMacros = {
     protein: 120,
     proteinGoal: 150,
@@ -164,7 +164,7 @@ export default function NutritionScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Nutrition</Text>
+          <Text style={styles.headerTitle}>{t.nutritionScreenTitle}</Text>
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="add-circle" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -177,7 +177,7 @@ export default function NutritionScreen({ navigation }: any) {
           <Card>
             <View style={styles.calorieHeader}>
               <Text style={[styles.calorieLabel, { color: colors.textSecondary }]}>
-                Calories Consumed
+                {t.caloriesConsumed}
               </Text>
               <View style={styles.calorieValues}>
                 <Text style={[styles.calorieConsumed, { color: colors.primary }]}>
@@ -199,7 +199,7 @@ export default function NutritionScreen({ navigation }: any) {
                 />
               </View>
               <Text style={[styles.calorieRemaining, { color: colors.textSecondary }]}>
-                {todayMacros.caloriesGoal - todayMacros.calories} cal remaining
+                {todayMacros.caloriesGoal - todayMacros.calories} {t.calRemaining}
               </Text>
             </View>
           </Card>
@@ -207,7 +207,7 @@ export default function NutritionScreen({ navigation }: any) {
 
         {/* Macros Progress */}
         <View style={styles.macrosSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Macros</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.macros}</Text>
           <View style={styles.macrosGrid}>
             {/* Protein */}
             <View style={[styles.macroCard, { backgroundColor: colors.card }]}>
@@ -217,7 +217,7 @@ export default function NutritionScreen({ navigation }: any) {
               <Text style={[styles.macroValue, { color: colors.text }]}>
                 {todayMacros.protein}g
               </Text>
-              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>Protein</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.protein}</Text>
               <View style={styles.macroProgressBar}>
                 <View
                   style={[
@@ -230,7 +230,7 @@ export default function NutritionScreen({ navigation }: any) {
                 />
               </View>
               <Text style={[styles.macroGoalText, { color: colors.textSecondary }]}>
-                {todayMacros.proteinGoal}g goal
+                {todayMacros.proteinGoal}g {t.goalSuffix}
               </Text>
             </View>
 
@@ -242,7 +242,7 @@ export default function NutritionScreen({ navigation }: any) {
               <Text style={[styles.macroValue, { color: colors.text }]}>
                 {todayMacros.carbs}g
               </Text>
-              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>Carbs</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.carbs}</Text>
               <View style={styles.macroProgressBar}>
                 <View
                   style={[
@@ -255,7 +255,7 @@ export default function NutritionScreen({ navigation }: any) {
                 />
               </View>
               <Text style={[styles.macroGoalText, { color: colors.textSecondary }]}>
-                {todayMacros.carbsGoal}g goal
+                {todayMacros.carbsGoal}g {t.goalSuffix}
               </Text>
             </View>
 
@@ -267,7 +267,7 @@ export default function NutritionScreen({ navigation }: any) {
               <Text style={[styles.macroValue, { color: colors.text }]}>
                 {todayMacros.fat}g
               </Text>
-              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>Fat</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.fat}</Text>
               <View style={styles.macroProgressBar}>
                 <View
                   style={[
@@ -280,7 +280,7 @@ export default function NutritionScreen({ navigation }: any) {
                 />
               </View>
               <Text style={[styles.macroGoalText, { color: colors.textSecondary }]}>
-                {todayMacros.fatGoal}g goal
+                {todayMacros.fatGoal}g {t.goalSuffix}
               </Text>
             </View>
           </View>
@@ -288,7 +288,7 @@ export default function NutritionScreen({ navigation }: any) {
 
         {/* Weekly Chart */}
         <View style={styles.chartSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Overview</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.weeklyOverview}</Text>
           <Card>
             <BarChart
               data={weeklyCalories}
@@ -306,7 +306,7 @@ export default function NutritionScreen({ navigation }: any) {
 
         {/* Today's Meals */}
         <View style={styles.mealsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Meals</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.todaysMeals}</Text>
           {meals.map((meal) => (
             <TouchableOpacity
               key={meal.id}
@@ -320,7 +320,7 @@ export default function NutritionScreen({ navigation }: any) {
               <View style={styles.mealDetails}>
                 <Text style={[styles.mealName, { color: colors.text }]}>{meal.name}</Text>
                 <Text style={[styles.mealTime, { color: colors.textSecondary }]}>
-                  {meal.type.charAt(0).toUpperCase() + meal.type.slice(1)} • {meal.time}
+                  {meal.type === 'breakfast' ? t.mealBreakfast : meal.type === 'lunch' ? t.mealLunch : meal.type === 'dinner' ? t.mealDinner : t.mealSnack} • {meal.time}
                 </Text>
                 <View style={styles.mealMacros}>
                   <Text style={[styles.mealMacroText, { color: colors.textSecondary }]}>

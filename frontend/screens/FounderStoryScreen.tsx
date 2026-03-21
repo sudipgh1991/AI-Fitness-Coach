@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 const IMAGE_WIDTH = (width - 60) / 2; // 2 columns with padding
@@ -114,6 +115,7 @@ const transformations: Transformation[] = [
 ];
 
 const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { t } = useLanguage();
   const handleStartTransformation = async () => {
     try {
       // Check if we're in onboarding flow by looking at navigation state
@@ -154,22 +156,18 @@ const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         </View>
         
-        <Text style={styles.founderName}>Your Coach Name</Text>
-        <Text style={styles.founderTitle}>Certified Fitness & Nutrition Coach</Text>
+        <Text style={styles.founderName}>{t.founderCoachName}</Text>
+        <Text style={styles.founderTitle}>{t.founderCoachTitle}</Text>
         
         <Text style={styles.founderStory}>
-          After my own transformation journey and helping 500+ women achieve their fitness goals, 
-          I created this app to make personalized coaching accessible to every woman.
-          {'\n\n'}
-          Whether you're a new mom, managing PCOS, building muscle, or juggling a busy career—
-          you deserve a plan that works with your life, not against it.
+          {t.founderStoryText}
         </Text>
       </View>
 
       {/* Transformations Header */}
       <View style={styles.transformationsHeader}>
-        <Text style={styles.sectionTitle}>Top 10 Transformations</Text>
-        <Text style={styles.sectionSubtitle}>Real clients. Real results.</Text>
+        <Text style={styles.sectionTitle}>{t.founderTransformationsTitle}</Text>
+        <Text style={styles.sectionSubtitle}>{t.founderTransformationsSub}</Text>
       </View>
 
       {/* Transformations Grid */}
@@ -184,7 +182,7 @@ const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   resizeMode="cover"
                 />
                 <View style={styles.labelBadge}>
-                  <Text style={styles.labelText}>BEFORE</Text>
+                  <Text style={styles.labelText}>{t.founderBefore}</Text>
                 </View>
               </View>
               
@@ -195,7 +193,7 @@ const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   resizeMode="cover"
                 />
                 <View style={[styles.labelBadge, styles.labelBadgeAfter]}>
-                  <Text style={styles.labelText}>AFTER</Text>
+                  <Text style={styles.labelText}>{t.founderAfter}</Text>
                 </View>
               </View>
             </View>
@@ -212,8 +210,7 @@ const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Specialized results for postpartum recovery, PCOS management, muscle building, 
-          busy professionals, and vegetarian lifestyles
+          {t.founderSpecialized}
         </Text>
       </View>
 
@@ -222,7 +219,7 @@ const FounderStoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         style={styles.ctaButton}
         onPress={handleStartTransformation}
       >
-        <Text style={styles.ctaButtonText}>Start Your Transformation</Text>
+        <Text style={styles.ctaButtonText}>{t.founderStartTransformationBtn}</Text>
       </TouchableOpacity>
 
       <View style={styles.bottomPadding} />

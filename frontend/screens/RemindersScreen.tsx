@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -28,6 +29,7 @@ type Reminder = {
 
 export default function RemindersScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [reminders, setReminders] = useState<Reminder[]>([
     {
       id: '1',
@@ -111,6 +113,20 @@ export default function RemindersScreen({ navigation }: any) {
     );
   };
 
+  const getReminderText = (id: string): { title: string; description: string } => {
+    const map: Record<string, { title: string; description: string }> = {
+      '1': { title: t.remindersWaterIntakeTitle, description: t.remindersWaterIntakeSub },
+      '2': { title: t.remindersDailyStepsTitle, description: t.remindersDailyStepsSub },
+      '3': { title: t.remindersMorningWorkoutTitle, description: t.remindersMorningWorkoutSub },
+      '4': { title: t.remindersEveningWorkoutTitle, description: t.remindersEveningWorkoutSub },
+      '5': { title: t.remindersMealPrepTitle, description: t.remindersMealPrepSub },
+      '6': { title: t.remindersSleepReminderTitle, description: t.remindersSleepReminderSub },
+      '7': { title: t.remindersWeighInTitle, description: t.remindersWeighInSub },
+      '8': { title: t.remindersStretchBreakTitle, description: t.remindersStretchBreakSub },
+    };
+    return map[id] || { title: '', description: '' };
+  };
+
   const getIconColor = (icon: string) => {
     const colorMap: { [key: string]: string } = {
       water: colors.info,
@@ -143,8 +159,8 @@ export default function RemindersScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Smart Reminders</Text>
-            <Text style={styles.headerSubtitle}>Stay on track with your goals</Text>
+            <Text style={styles.headerTitle}>{t.remindersScreenTitle}</Text>
+            <Text style={styles.headerSubtitle}>{t.remindersSubtitle}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -154,11 +170,10 @@ export default function RemindersScreen({ navigation }: any) {
           <Ionicons name="notifications" size={32} color={colors.info} />
           <View style={styles.infoContent}>
             <Text style={[styles.infoTitle, { color: colors.text }]}>
-              Customize Your Reminders
+              {t.remindersCustomize}
             </Text>
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              Toggle reminders on/off. All reminders are optional and can be customized to your
-              schedule.
+              {t.remindersInfo}
             </Text>
           </View>
         </View>
@@ -173,7 +188,7 @@ export default function RemindersScreen({ navigation }: any) {
               <Text style={[styles.statValue, { color: colors.text }]}>
                 {reminders.filter((r) => r.enabled).length}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Active</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.remindersActiveLabel}</Text>
             </LinearGradient>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card }]}>
@@ -183,12 +198,12 @@ export default function RemindersScreen({ navigation }: any) {
             >
               <Ionicons name="alarm" size={32} color={colors.warning} />
               <Text style={[styles.statValue, { color: colors.text }]}>{reminders.length}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.remindersTotalLabel}</Text>
             </LinearGradient>
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>All Reminders</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.remindersAll}</Text>
 
         {reminders.map((reminder) => (
           <View key={reminder.id} style={[styles.reminderCard, { backgroundColor: colors.card }]}>
@@ -211,10 +226,10 @@ export default function RemindersScreen({ navigation }: any) {
 
             <View style={styles.reminderInfo}>
               <Text style={[styles.reminderTitle, { color: colors.text }]}>
-                {reminder.title}
+                {getReminderText(reminder.id).title}
               </Text>
               <Text style={[styles.reminderDescription, { color: colors.textSecondary }]}>
-                {reminder.description}
+                {getReminderText(reminder.id).description}
               </Text>
               {reminder.time && (
                 <View style={styles.reminderDetails}>
@@ -249,7 +264,7 @@ export default function RemindersScreen({ navigation }: any) {
         >
           <Ionicons name="add-circle" size={32} color={colors.primary} />
           <Text style={[styles.addButtonText, { color: colors.text }]}>
-            Add Custom Reminder
+            {t.remindersAddCustom}
           </Text>
         </TouchableOpacity>
 
@@ -260,25 +275,25 @@ export default function RemindersScreen({ navigation }: any) {
           >
             <View style={styles.tipsHeader}>
               <Ionicons name="bulb" size={28} color={colors.warning} />
-              <Text style={[styles.tipsTitle, { color: colors.text }]}>Tips for Success</Text>
+              <Text style={[styles.tipsTitle, { color: colors.text }]}>{t.remindersTipsTitle}</Text>
             </View>
             <View style={styles.tipsList}>
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: colors.success }]} />
                 <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                  Set reminders at times when you can actually act on them
+                  {t.remindersTip1}
                 </Text>
               </View>
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: colors.success }]} />
                 <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                  Start with 2-3 key reminders, then add more as needed
+                  {t.remindersTip2}
                 </Text>
               </View>
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: colors.success }]} />
                 <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                  Adjust frequency based on your lifestyle and schedule
+                  {t.remindersTip3}
                 </Text>
               </View>
             </View>

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
@@ -35,6 +36,7 @@ interface RewardTier {
 
 export default function ReferralScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   
   // Mock referral code for demo
   const [referralCode] = useState('FIT2026');
@@ -59,7 +61,7 @@ export default function ReferralScreen({ navigation }: any) {
 
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(referralCode);
-    Alert.alert('Copied!', 'Referral code copied to clipboard');
+    Alert.alert(t.referralCopied, t.referralCopiedMsg);
   };
 
   const shareCode = async () => {
@@ -98,21 +100,21 @@ export default function ReferralScreen({ navigation }: any) {
   const handleRedeemReward = (tier: RewardTier) => {
     if (availablePoints >= tier.points) {
       Alert.alert(
-        'Redeem Reward',
+        t.referralRedeemTitle,
         `Redeem ${tier.points} points for ${tier.label}?`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t.cancel, style: 'cancel' },
           {
-            text: 'Redeem',
+            text: t.referralRedeem,
             onPress: () => {
               setAvailablePoints(availablePoints - tier.points);
-              Alert.alert('Success!', `You've redeemed ${tier.label}! Check your account for the discount.`);
+              Alert.alert(t.referralSuccessTitle, t.referralSuccessMsg(tier.label));
             },
           },
         ]
       );
     } else {
-      Alert.alert('Not Enough Points', `You need ${tier.points - availablePoints} more points to redeem this reward.`);
+      Alert.alert(t.referralNotEnoughTitle, t.referralMorePtsNeeded(tier.points - availablePoints));
     }
   };
 
@@ -123,7 +125,7 @@ export default function ReferralScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Refer & Earn</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.referralScreenTitle}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -138,33 +140,33 @@ export default function ReferralScreen({ navigation }: any) {
               {availablePoints}
             </Text>
             <Text style={[styles.earningsLabel, { color: colors.textSecondary }]}>
-              Available Points
+              {t.referralAvailablePoints}
             </Text>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.text }]}>{totalPoints}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Earned</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.referralEarned}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.text }]}>${totalEarned}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cash</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.referralCash}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: colors.text }]}>{referrals.length}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Referrals</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.referralCountLabel}</Text>
               </View>
             </View>
           </View>
         </Card>
 
         {/* Referral Code */}
-        <Card title="Your Referral Code">
+        <Card title={t.referralYourCode}>
           <View style={styles.codeSection}>
             <View style={[styles.discountBanner, { backgroundColor: colors.success + '15', borderColor: colors.success }]}>
               <Ionicons name="gift" size={24} color={colors.success} />
               <View style={styles.discountInfo}>
-                <Text style={[styles.discountTitle, { color: colors.success }]}>New Users Get {referrerDiscount} OFF</Text>
-                <Text style={[styles.discountSubtitle, { color: colors.textSecondary }]}>First month discount when they use your code</Text>
+                <Text style={[styles.discountTitle, { color: colors.success }]}>{t.referralDiscount}</Text>
+                <Text style={[styles.discountSubtitle, { color: colors.textSecondary }]}>{t.referralDiscountInfo}</Text>
               </View>
             </View>
             <View style={[styles.codeBox, { backgroundColor: colors.primary + '10', borderColor: colors.primary }]}>
@@ -178,30 +180,30 @@ export default function ReferralScreen({ navigation }: any) {
                 onPress={copyToClipboard}
               >
                 <Ionicons name="copy-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Copy</Text>
+                <Text style={styles.actionButtonText}>{t.referralCopy}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: colors.info }]}
                 onPress={shareCode}
               >
                 <Ionicons name="share-social-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Share</Text>
+                <Text style={styles.actionButtonText}>{t.referralShare}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Card>
 
         {/* How It Works */}
-        <Card title="How It Works">
+        <Card title={t.referralHowItWorks}>
           <View style={styles.stepsList}>
             <View style={styles.step}>
               <View style={[styles.stepNumber, { backgroundColor: colors.primary }]}>
                 <Text style={styles.stepNumberText}>1</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.text }]}>Share Your Code</Text>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>{t.referralStep1Title}</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  Share your code - friends get {referrerDiscount} OFF first month
+                  {t.referralStep1Desc}
                 </Text>
               </View>
             </View>
@@ -211,9 +213,9 @@ export default function ReferralScreen({ navigation }: any) {
                 <Text style={styles.stepNumberText}>2</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.text }]}>Friend Signs Up</Text>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>{t.referralStep2Title}</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  They join with your code - You earn 50 points + $5
+                  {t.referralStep2Desc}
                 </Text>
               </View>
             </View>
@@ -223,9 +225,9 @@ export default function ReferralScreen({ navigation }: any) {
                 <Text style={styles.stepNumberText}>3</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.text }]}>They Go Premium</Text>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>{t.referralStep3Title}</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  When they upgrade - You earn 100 points + $5 more
+                  {t.referralStep3Desc}
                 </Text>
               </View>
             </View>
@@ -235,9 +237,9 @@ export default function ReferralScreen({ navigation }: any) {
                 <Text style={styles.stepNumberText}>4</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: colors.text }]}>Redeem Rewards</Text>
+                <Text style={[styles.stepTitle, { color: colors.text }]}>{t.referralStep4Title}</Text>
                 <Text style={[styles.stepDescription, { color: colors.textSecondary }]}>
-                  Use points for discounts or free months
+                  {t.referralStep4Desc}
                 </Text>
               </View>
             </View>
@@ -245,7 +247,7 @@ export default function ReferralScreen({ navigation }: any) {
         </Card>
 
         {/* Reward Tiers */}
-        <Card title="Redeem Your Points">
+        <Card title={t.referralRedeemPoints}>
           <View style={styles.rewardsGrid}>
             {rewardTiers.map((tier, index) => (
               <TouchableOpacity
@@ -272,7 +274,7 @@ export default function ReferralScreen({ navigation }: any) {
                 </Text>
                 {availablePoints >= tier.points ? (
                   <View style={[styles.redeemButton, { backgroundColor: tier.color }]}>
-                    <Text style={styles.redeemButtonText}>Redeem</Text>
+                    <Text style={styles.redeemButtonText}>{t.referralRedeem}</Text>
                   </View>
                 ) : (
                   <Text style={[styles.lockedText, { color: colors.textSecondary }]}>
@@ -286,7 +288,7 @@ export default function ReferralScreen({ navigation }: any) {
 
         {/* Referral History */}
         {referrals.length > 0 && (
-          <Card title="Your Referrals">
+          <Card title={t.referralYourReferrals}>
             {referrals.map((referral) => (
               <View
                 key={referral.id}
@@ -300,13 +302,13 @@ export default function ReferralScreen({ navigation }: any) {
                     <View style={[styles.statusBadge, { backgroundColor: getStatusColor(referral.status) + '20' }]}>
                       <Ionicons name={getStatusIcon(referral.status)} size={14} color={getStatusColor(referral.status)} />
                       <Text style={[styles.statusText, { color: getStatusColor(referral.status) }]}>
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+                        {referral.status === 'premium' ? t.referralPremiumStatus : referral.status === 'joined' ? t.referralJoinedStatus : t.referralPendingStatus}
                       </Text>
                     </View>
                   </View>
                   <View style={styles.referralDetails}>
                     <Text style={[styles.referralDate, { color: colors.textSecondary }]}>
-                      Joined {formatDate(referral.date)}
+                      {t.referralJoinedLabel(formatDate(referral.date))}
                     </Text>
                     <View style={styles.rewardInfo}>
                       {referral.points > 0 && (
@@ -330,8 +332,7 @@ export default function ReferralScreen({ navigation }: any) {
           <View style={styles.termsCard}>
             <Ionicons name="shield-checkmark-outline" size={20} color={colors.info} />
             <Text style={[styles.termsText, { color: colors.textSecondary }]}>
-              Rewards are credited within 24 hours. Maximum 50 referrals per month. 
-              Terms & conditions apply.
+              {t.referralTermsText}
             </Text>
           </View>
         </Card>

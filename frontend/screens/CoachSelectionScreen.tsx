@@ -12,42 +12,44 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function CoachSelectionScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
 
   const coachingStyles = [
     {
       id: 'friendly',
-      name: 'Friendly & Supportive',
+      name: t.csStyleFriendly,
       icon: 'happy',
-      description: 'Encouraging and warm approach',
+      description: t.csStyleFriendlyDesc,
       color: colors.success,
     },
     {
       id: 'strict',
-      name: 'Strict & Disciplined',
+      name: t.csStyleStrict,
       icon: 'fitness',
-      description: 'Tough love and accountability',
+      description: t.csStyleStrictDesc,
       color: colors.error,
     },
     {
       id: 'calm',
-      name: 'Calm & Balanced',
+      name: t.csStyleCalm,
       icon: 'leaf',
-      description: 'Mindful and steady guidance',
+      description: t.csStyleCalmDesc,
       color: colors.info,
     },
     {
       id: 'motivational',
-      name: 'Motivational & Energetic',
+      name: t.csStyleMotivational,
       icon: 'flame',
-      description: 'High energy and inspiring',
+      description: t.csStyleMotivationalDesc,
       color: colors.warning,
     },
   ];
@@ -83,20 +85,20 @@ export default function CoachSelectionScreen({ navigation }: any) {
           onPress={() => navigation.replace('Login')}
         >
           <Ionicons name="log-in" size={20} color="#FFF" />
-          <Text style={styles.skipButtonText}>Already a member?</Text>
+          <Text style={styles.skipButtonText}>{t.csAlreadyMemberText}</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Ionicons name="people" size={48} color="#FFF" />
-          <Text style={styles.headerTitle}>Choose Your Coach</Text>
-          <Text style={styles.headerSubtitle}>Personalize your coaching experience</Text>
+          <Text style={styles.headerTitle}>{t.csScreenTitle}</Text>
+          <Text style={styles.headerSubtitle}>{t.csScreenSubtitle}</Text>
         </View>
       </LinearGradient>
 
       <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Coach Gender</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.csCoachGenderLabel}</Text>
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Select the gender you're most comfortable working with
+            {t.csCoachGenderDesc}
           </Text>
 
           <View style={styles.genderContainer}>
@@ -161,9 +163,9 @@ export default function CoachSelectionScreen({ navigation }: any) {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Coaching Style</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.csCoachingStyleLabel}</Text>
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            How would you like your coach to communicate with you?
+            {t.csCoachingStyleDesc}
           </Text>
 
           <View style={styles.stylesContainer}>
@@ -232,10 +234,12 @@ export default function CoachSelectionScreen({ navigation }: any) {
                 style={styles.previewGradient}
               >
                 <Ionicons name="information-circle" size={32} color={colors.info} />
-                <Text style={[styles.previewTitle, { color: colors.text }]}>Your Selection</Text>
+                <Text style={[styles.previewTitle, { color: colors.text }]}>{t.csYourSelectionLabel}</Text>
                 <Text style={[styles.previewText, { color: colors.textSecondary }]}>
-                  {selectedGender === 'male' ? 'Male' : 'Female'} coach with a{' '}
-                  {coachingStyles.find((s) => s.id === selectedStyle)?.name.toLowerCase()} approach
+                  {t.csPreviewText(
+                    selectedGender === 'male' ? t.csMaleCoach : t.csFemaleCoach,
+                    coachingStyles.find((s) => s.id === selectedStyle)?.name ?? ''
+                  )}
                 </Text>
               </LinearGradient>
             </View>
@@ -244,7 +248,7 @@ export default function CoachSelectionScreen({ navigation }: any) {
               style={[styles.continueButton, { backgroundColor: colors.primary }]}
               onPress={handleComplete}
             >
-              <Text style={styles.continueButtonText}>Start My Journey</Text>
+              <Text style={styles.continueButtonText}>{t.csStartJourneyBtn}</Text>
               <Ionicons name="arrow-forward" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>

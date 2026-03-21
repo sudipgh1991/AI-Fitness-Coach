@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -22,12 +23,26 @@ import { Post, Comment } from '../types';
 
 export default function SocialScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>(mockComments);
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 60) return t.socialMinutesAgo(minutes);
+    if (hours < 24) return t.socialHoursAgo(hours);
+    return t.socialDaysAgo(days);
+  };
 
   const handleLike = (postId: string) => {
     setPosts(posts.map(post => {
@@ -168,7 +183,7 @@ export default function SocialScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Community
+          {t.socialCommunity}
         </Text>
         <TouchableOpacity
           style={[styles.createButton, { backgroundColor: colors.primary }]}
@@ -195,7 +210,7 @@ export default function SocialScreen() {
         <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Comments
+              {t.socialComments}
             </Text>
             <TouchableOpacity onPress={() => setShowComments(false)}>
               <Ionicons name="close" size={28} color={colors.text} />
@@ -209,7 +224,7 @@ export default function SocialScreen() {
             contentContainerStyle={styles.commentsList}
             ListEmptyComponent={
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                No comments yet. Be the first to comment!
+                {t.socialNoComments}
               </Text>
             }
           />
@@ -220,7 +235,7 @@ export default function SocialScreen() {
           >
             <TextInput
               style={[styles.commentInput, { color: colors.text }]}
-              placeholder="Write a comment..."
+              placeholder={t.socialWriteComment}
               placeholderTextColor={colors.textSecondary}
               value={commentText}
               onChangeText={setCommentText}
@@ -243,19 +258,7 @@ export default function SocialScreen() {
   );
 }
 
-// Helper function
-const formatTimestamp = (timestamp: string) => {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
-};
+// formatTimestamp is defined inside SocialScreen to access t
 
 // Mock data
 const mockPosts: Post[] = [

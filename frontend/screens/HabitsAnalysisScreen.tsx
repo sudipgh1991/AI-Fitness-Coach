@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BarChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -35,6 +36,7 @@ type HabitLog = {
 
 export default function HabitsAnalysisScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedView, setSelectedView] = useState<'cravings' | 'habits' | 'insights'>('cravings');
 
   const cravings: CravingLog[] = [
@@ -54,7 +56,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
 
   // Craving frequency by time of day
   const timeOfDayData = {
-    labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+    labels: [t.habitsMorning, t.habitsAfternoon, t.habitsEvening, t.habitsNight],
     datasets: [
       {
         data: [2, 8, 5, 7], // Sample data
@@ -91,25 +93,25 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
           style={styles.statsGradient}
         >
           <Text style={[styles.statsTitle, { color: colors.text }]}>
-            Craving Patterns
+            {t.habitsCravingPatterns}
           </Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>{cravings.length}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                This Week
+                {t.habitsThisWeek}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>3.8</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Avg Intensity
+                {t.habitsAvgIntensity}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>Stress</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Top Trigger
+                {t.habitsTopTrigger}
               </Text>
             </View>
           </View>
@@ -118,7 +120,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
 
       <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.chartTitle, { color: colors.text }]}>
-          Cravings by Time of Day
+          {t.habitsCravingsByTime}
         </Text>
         <BarChart
           data={timeOfDayData}
@@ -142,7 +144,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
         />
       </View>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Cravings</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.habitsRecentCravings}</Text>
 
       {cravings.map((craving) => (
         <View key={craving.id} style={[styles.cravingCard, { backgroundColor: colors.card }]}>
@@ -190,7 +192,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
                 color={colors.primary}
               />
               <Text style={[styles.triggerText, { color: colors.textSecondary }]}>
-                Trigger: {craving.trigger}
+                {t.habitsTriggerLabel} {craving.trigger}
               </Text>
             </View>
           )}
@@ -209,12 +211,12 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
           <Ionicons name="trophy" size={48} color={colors.success} />
           <Text style={[styles.overallValue, { color: colors.text }]}>86%</Text>
           <Text style={[styles.overallLabel, { color: colors.textSecondary }]}>
-            Overall Completion Rate
+            {t.habitsOverallCompletion}
           </Text>
         </LinearGradient>
       </View>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Habits</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.habitsYourHabits}</Text>
 
       {habits.map((habit) => (
         <View key={habit.id} style={[styles.habitCard, { backgroundColor: colors.card }]}>
@@ -222,7 +224,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
             <View style={styles.habitInfo}>
               <Text style={[styles.habitName, { color: colors.text }]}>{habit.habit}</Text>
               <Text style={[styles.habitLastCompleted, { color: colors.textSecondary }]}>
-                Last completed:{' '}
+                {t.habitsLastCompleted}{' '}
                 {new Date(habit.lastCompleted).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -367,8 +369,8 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Habits & Cravings</Text>
-            <Text style={styles.headerSubtitle}>Understand your patterns</Text>
+            <Text style={styles.headerTitle}>{t.habitsScreenTitle}</Text>
+            <Text style={styles.headerSubtitle}>{t.habitsScreenSubtitle}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -389,7 +391,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
               { color: selectedView === 'cravings' ? '#FFF' : colors.text },
             ]}
           >
-            Cravings
+            {t.habitsTabCravings}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -407,7 +409,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
               { color: selectedView === 'habits' ? '#FFF' : colors.text },
             ]}
           >
-            Habits
+            {t.habitsTabHabits}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -425,7 +427,7 @@ export default function HabitsAnalysisScreen({ navigation }: any) {
               { color: selectedView === 'insights' ? '#FFF' : colors.text },
             ]}
           >
-            Insights
+            {t.habitsTabInsights}
           </Text>
         </TouchableOpacity>
       </View>

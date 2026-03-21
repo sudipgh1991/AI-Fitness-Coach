@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -31,6 +32,7 @@ interface Goal {
 
 export default function GoalsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'weight' | 'workout' | 'nutrition' | 'habit' | 'performance'>('all');
 
   const goals: Goal[] = [
@@ -137,12 +139,12 @@ export default function GoalsScreen({ navigation }: any) {
   ];
 
   const categories = [
-    { key: 'all' as const, label: 'All', icon: 'apps' },
-    { key: 'weight' as const, label: 'Weight', icon: 'scale' },
-    { key: 'workout' as const, label: 'Workout', icon: 'barbell' },
-    { key: 'nutrition' as const, label: 'Nutrition', icon: 'restaurant' },
-    { key: 'habit' as const, label: 'Habit', icon: 'calendar' },
-    { key: 'performance' as const, label: 'Performance', icon: 'trophy' },
+    { key: 'all' as const, label: t.all, icon: 'apps' },
+    { key: 'weight' as const, label: t.goalsCatWeight, icon: 'scale' },
+    { key: 'workout' as const, label: t.goalsCatWorkout, icon: 'barbell' },
+    { key: 'nutrition' as const, label: t.goalsCatNutrition, icon: 'restaurant' },
+    { key: 'habit' as const, label: t.goalsCatHabit, icon: 'calendar' },
+    { key: 'performance' as const, label: t.goalsCatPerformance, icon: 'trophy' },
   ];
 
   const filteredGoals = selectedCategory === 'all' 
@@ -155,16 +157,16 @@ export default function GoalsScreen({ navigation }: any) {
   const overallProgress = Math.round((completedGoals / totalGoals) * 100);
 
   const formatDeadline = (dateStr?: string) => {
-    if (!dateStr) return 'No deadline';
+    if (!dateStr) return t.goalsNoDeadline;
     const date = new Date(dateStr);
     const today = new Date();
     const diffTime = date.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'Overdue';
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Tomorrow';
-    if (diffDays < 7) return `${diffDays} days left`;
+    if (diffDays < 0) return t.goalsOverdue;
+    if (diffDays === 0) return t.today;
+    if (diffDays === 1) return t.goalsTomorrow;
+    if (diffDays < 7) return t.goalsDaysLeft(diffDays);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -181,7 +183,7 @@ export default function GoalsScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Goals</Text>
+          <Text style={styles.headerTitle}>{t.goalsScreenTitle}</Text>
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="add-circle" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -192,17 +194,17 @@ export default function GoalsScreen({ navigation }: any) {
           <View style={styles.progressStats}>
             <View style={styles.progressStatItem}>
               <Text style={styles.progressStatValue}>{totalGoals}</Text>
-              <Text style={styles.progressStatLabel}>Total</Text>
+              <Text style={styles.progressStatLabel}>{t.goalsStatTotal}</Text>
             </View>
             <View style={styles.progressDivider} />
             <View style={styles.progressStatItem}>
               <Text style={styles.progressStatValue}>{activeGoals}</Text>
-              <Text style={styles.progressStatLabel}>Active</Text>
+              <Text style={styles.progressStatLabel}>{t.goalsStatActive}</Text>
             </View>
             <View style={styles.progressDivider} />
             <View style={styles.progressStatItem}>
               <Text style={styles.progressStatValue}>{completedGoals}</Text>
-              <Text style={styles.progressStatLabel}>Completed</Text>
+              <Text style={styles.progressStatLabel}>{t.goalsStatCompleted}</Text>
             </View>
           </View>
           <View style={styles.overallProgressBar}>
@@ -214,7 +216,7 @@ export default function GoalsScreen({ navigation }: any) {
                 ]}
               />
             </View>
-            <Text style={styles.overallProgressText}>{overallProgress}% Complete</Text>
+            <Text style={styles.overallProgressText}>{overallProgress}{t.goalsPercentComplete}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -342,7 +344,7 @@ export default function GoalsScreen({ navigation }: any) {
           <View style={styles.emptyState}>
             <Ionicons name="trophy-outline" size={64} color={colors.textSecondary} />
             <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-              No goals in this category
+              {t.goalsNoGoals}
             </Text>
           </View>
         )}

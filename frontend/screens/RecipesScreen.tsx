@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -34,11 +35,18 @@ type Recipe = {
 
 export default function RecipesScreen({ navigation }: any) {
   const { colors } = useTheme();
-  const [selectedFilter, setSelectedFilter] = useState('All');
+  const { t } = useLanguage();
+  const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filters = ['All', 'High Protein', 'Low Carb', 'Vegetarian', 'Quick & Easy'];
+  const filters = [
+    { key: 'all', label: t.all },
+    { key: 'High Protein', label: t.recipesFilterHighProtein },
+    { key: 'Low Carb', label: t.recipesFilterLowCarb },
+    { key: 'Vegetarian', label: t.recipesFilterVegetarian },
+    { key: 'Quick & Easy', label: t.recipesFilterQuickEasy },
+  ];
 
   const recipes: Recipe[] = [
     {
@@ -175,7 +183,7 @@ export default function RecipesScreen({ navigation }: any) {
 
   const filteredRecipes = recipes.filter((recipe) => {
     const matchesFilter =
-      selectedFilter === 'All' || recipe.tags.includes(selectedFilter);
+      selectedFilter === 'all' || recipe.tags.includes(selectedFilter);
     const matchesSearch =
       searchQuery === '' ||
       recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -229,7 +237,7 @@ export default function RecipesScreen({ navigation }: any) {
             <Text
               style={[styles.difficultyText, { color: getDifficultyColor(recipe.difficulty) }]}
             >
-              {recipe.difficulty}
+              {recipe.difficulty === 'Easy' ? t.recipesDiffEasy : recipe.difficulty === 'Medium' ? t.recipesDiffMedium : t.recipesDiffHard}
             </Text>
           </View>
         </View>
@@ -243,17 +251,17 @@ export default function RecipesScreen({ navigation }: any) {
           <View style={styles.macroItem}>
             <Ionicons name="fitness" size={18} color={colors.success} />
             <Text style={[styles.macroValue, { color: colors.text }]}>{recipe.protein}g</Text>
-            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>protein</Text>
+            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.protein}</Text>
           </View>
           <View style={styles.macroItem}>
             <Ionicons name="nutrition" size={18} color={colors.warning} />
             <Text style={[styles.macroValue, { color: colors.text }]}>{recipe.carbs}g</Text>
-            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>carbs</Text>
+            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.carbs}</Text>
           </View>
           <View style={styles.macroItem}>
             <Ionicons name="water" size={18} color={colors.info} />
             <Text style={[styles.macroValue, { color: colors.text }]}>{recipe.fat}g</Text>
-            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>fat</Text>
+            <Text style={[styles.macroLabel, { color: colors.textSecondary }]}>{t.fat}</Text>
           </View>
         </View>
 
@@ -261,13 +269,13 @@ export default function RecipesScreen({ navigation }: any) {
           <View style={styles.timeInfo}>
             <Ionicons name="time" size={16} color={colors.textSecondary} />
             <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-              Prep: {recipe.prepTime} • Cook: {recipe.cookTime}
+              {t.recipesPrep}: {recipe.prepTime} • {t.recipesCook}: {recipe.cookTime}
             </Text>
           </View>
           <View style={styles.servingsInfo}>
             <Ionicons name="restaurant" size={16} color={colors.textSecondary} />
             <Text style={[styles.servingsText, { color: colors.textSecondary }]}>
-              {recipe.servings} servings
+              {recipe.servings} {t.recipesServings}
             </Text>
           </View>
         </View>
@@ -285,7 +293,7 @@ export default function RecipesScreen({ navigation }: any) {
           onPress={() => setSelectedRecipe(null)}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
-          <Text style={[styles.backText, { color: colors.text }]}>Back to Recipes</Text>
+          <Text style={[styles.backText, { color: colors.text }]}>{t.recipesBackToList}</Text>
         </TouchableOpacity>
 
         <View style={[styles.detailHeader, { backgroundColor: colors.card }]}>
@@ -298,24 +306,26 @@ export default function RecipesScreen({ navigation }: any) {
             <Text style={styles.detailName}>{selectedRecipe.name}</Text>
             <View style={styles.detailBadges}>
               <View style={styles.detailBadge}>
-                <Text style={styles.badgeText}>{selectedRecipe.difficulty}</Text>
+                <Text style={styles.badgeText}>
+                  {selectedRecipe.difficulty === 'Easy' ? t.recipesDiffEasy : selectedRecipe.difficulty === 'Medium' ? t.recipesDiffMedium : t.recipesDiffHard}
+                </Text>
               </View>
               <View style={styles.detailBadge}>
-                <Text style={styles.badgeText}>{selectedRecipe.servings} servings</Text>
+                <Text style={styles.badgeText}>{selectedRecipe.servings} {t.recipesServings}</Text>
               </View>
             </View>
           </LinearGradient>
         </View>
 
         <View style={[styles.nutritionCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Nutrition Per Serving</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.recipesNutritionPerServing}</Text>
           <View style={styles.nutritionGrid}>
             <View style={styles.nutritionItem}>
               <Text style={[styles.nutritionValue, { color: colors.text }]}>
                 {selectedRecipe.calories}
               </Text>
               <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Calories
+                {t.calories}
               </Text>
             </View>
             <View style={styles.nutritionItem}>
@@ -323,26 +333,26 @@ export default function RecipesScreen({ navigation }: any) {
                 {selectedRecipe.protein}g
               </Text>
               <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
-                Protein
+                {t.protein}
               </Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={[styles.nutritionValue, { color: colors.text }]}>
                 {selectedRecipe.carbs}g
               </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>Carbs</Text>
+              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>{t.carbs}</Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={[styles.nutritionValue, { color: colors.text }]}>
                 {selectedRecipe.fat}g
               </Text>
-              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>Fat</Text>
+              <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>{t.fat}</Text>
             </View>
           </View>
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingredients</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.recipesIngredients}</Text>
           {selectedRecipe.ingredients.map((ingredient, index) => (
             <View key={index} style={styles.ingredientItem}>
               <View style={[styles.bullet, { backgroundColor: colors.primary }]} />
@@ -352,7 +362,7 @@ export default function RecipesScreen({ navigation }: any) {
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Instructions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.recipesInstructions}</Text>
           {selectedRecipe.instructions.map((instruction, index) => (
             <View key={index} style={styles.instructionItem}>
               <View style={[styles.stepNumber, { backgroundColor: colors.primary }]}>
@@ -367,7 +377,7 @@ export default function RecipesScreen({ navigation }: any) {
 
         <TouchableOpacity style={[styles.addToMealButton, { backgroundColor: colors.primary }]}>
           <Ionicons name="add-circle" size={24} color="#FFF" />
-          <Text style={styles.addToMealText}>Add to Meal Plan</Text>
+          <Text style={styles.addToMealText}>{t.recipesAddToMealPlan}</Text>
         </TouchableOpacity>
 
         <View style={{ height: Spacing.xl }} />
@@ -393,8 +403,8 @@ export default function RecipesScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Recipes</Text>
-            <Text style={styles.headerSubtitle}>Healthy & delicious meals</Text>
+            <Text style={styles.headerTitle}>{t.recipes}</Text>
+            <Text style={styles.headerSubtitle}>{t.recipesSubtitle}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -406,7 +416,7 @@ export default function RecipesScreen({ navigation }: any) {
               <Ionicons name="search" size={20} color={colors.textSecondary} />
               <TextInput
                 style={[styles.searchInput, { color: colors.text }]}
-                placeholder="Search recipes..."
+                placeholder={t.recipesSearch}
                 placeholderTextColor={colors.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -421,23 +431,23 @@ export default function RecipesScreen({ navigation }: any) {
             >
               {filters.map((filter) => (
                 <TouchableOpacity
-                  key={filter}
+                  key={filter.key}
                   style={[
                     styles.filterChip,
                     {
                       backgroundColor:
-                        selectedFilter === filter ? colors.primary : colors.card,
+                        selectedFilter === filter.key ? colors.primary : colors.card,
                     },
                   ]}
-                  onPress={() => setSelectedFilter(filter)}
+                  onPress={() => setSelectedFilter(filter.key)}
                 >
                   <Text
                     style={[
                       styles.filterText,
-                      { color: selectedFilter === filter ? '#FFF' : colors.text },
+                      { color: selectedFilter === filter.key ? '#FFF' : colors.text },
                     ]}
                   >
-                    {filter}
+                    {filter.label}
                   </Text>
                 </TouchableOpacity>
               ))}

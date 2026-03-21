@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -33,6 +34,7 @@ interface Insight {
 
 export default function AIInsightsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'activity' | 'nutrition' | 'sleep' | 'habits'>('all');
 
   const insights: Insight[] = [
@@ -151,11 +153,11 @@ export default function AIInsightsScreen({ navigation }: any) {
   ];
 
   const categories = [
-    { id: 'all', label: 'All', icon: 'apps', color: colors.primary },
-    { id: 'activity', label: 'Activity', icon: 'footsteps', color: '#3B82F6' },
-    { id: 'nutrition', label: 'Nutrition', icon: 'restaurant', color: '#10B981' },
-    { id: 'sleep', label: 'Sleep', icon: 'moon', color: '#8B5CF6' },
-    { id: 'habits', label: 'Habits', icon: 'repeat', color: '#F59E0B' },
+    { id: 'all', label: t.aiInsightsAllLabel, icon: 'apps', color: colors.primary },
+    { id: 'activity', label: t.aiInsightsActivityLabel, icon: 'footsteps', color: '#3B82F6' },
+    { id: 'nutrition', label: t.aiInsightsNutritionLabel, icon: 'restaurant', color: '#10B981' },
+    { id: 'sleep', label: t.aiInsightsSleepLabel, icon: 'moon', color: '#8B5CF6' },
+    { id: 'habits', label: t.aiInsightsHabitsLabel, icon: 'repeat', color: '#F59E0B' },
   ];
 
   const getInsightIcon = (type: string) => {
@@ -226,7 +228,7 @@ export default function AIInsightsScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>AI Insights</Text>
+          <Text style={styles.headerTitle}>{t.aiInsightsScreenTitle}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -239,7 +241,7 @@ export default function AIInsightsScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="sparkles" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Insights Summary
+              {t.aiInsightsSummaryTitle}
             </Text>
           </View>
           <View style={styles.statsRow}>
@@ -248,7 +250,7 @@ export default function AIInsightsScreen({ navigation }: any) {
                 {insightStats.patterns}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Patterns
+                {t.aiInsightsPatternsLabel}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -256,7 +258,7 @@ export default function AIInsightsScreen({ navigation }: any) {
                 {insightStats.suggestions}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Suggestions
+                {t.aiInsightsSuggestionsLabel}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -264,7 +266,7 @@ export default function AIInsightsScreen({ navigation }: any) {
                 {insightStats.warnings}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Warnings
+                {t.aiInsightsWarningsLabel}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -272,7 +274,7 @@ export default function AIInsightsScreen({ navigation }: any) {
                 {insightStats.achievements}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Achievements
+                {t.aiInsightsAchievementsLabel}
               </Text>
             </View>
           </View>
@@ -315,7 +317,7 @@ export default function AIInsightsScreen({ navigation }: any) {
 
         {/* Insights List */}
         <Text style={[styles.resultsText, { color: colors.textSecondary }]}>
-          {filteredInsights.length} {filteredInsights.length === 1 ? 'Insight' : 'Insights'} Found
+          {t.aiInsightsFoundCount(filteredInsights.length)}
         </Text>
 
         {filteredInsights.map((insight) => (
@@ -345,7 +347,7 @@ export default function AIInsightsScreen({ navigation }: any) {
                         { color: getPriorityColor(insight.priority) },
                       ]}
                     >
-                      {insight.priority.toUpperCase()}
+                      {insight.priority === 'high' ? t.weeklyReviewHighPriority : insight.priority === 'medium' ? t.weeklyReviewMediumPriority : insight.priority.toUpperCase()}
                     </Text>
                   </View>
                 </View>
@@ -391,10 +393,10 @@ export default function AIInsightsScreen({ navigation }: any) {
           <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
             <Ionicons name="search" size={48} color={colors.textSecondary} />
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
-              No Insights Found
+              {t.aiInsightsNoInsightsTitle}
             </Text>
             <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
-              Try selecting a different category or keep tracking your activities to generate more insights.
+              {t.aiInsightsNoInsightsHintText}
             </Text>
           </View>
         )}
@@ -404,7 +406,7 @@ export default function AIInsightsScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="help-circle" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              How AI Insights Work
+              {t.aiInsightsHowItWorksTitle}
             </Text>
           </View>
           <View style={styles.howItWorksList}>

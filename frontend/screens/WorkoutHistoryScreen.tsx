@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
@@ -28,6 +29,7 @@ interface Workout {
 
 export default function WorkoutHistoryScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'strength' | 'cardio' | 'yoga' | 'hiit'>('all');
 
   // Mock workout history data
@@ -112,9 +114,9 @@ export default function WorkoutHistoryScreen({ navigation }: any) {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return t.today;
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return t.yesterday;
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
@@ -143,8 +145,7 @@ export default function WorkoutHistoryScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Workout History</Text>
-          <View style={{ width: 28 }} />
+          <Text style={styles.headerTitle}>Workout History</Text>          <View style={{ width: 28 }} />
         </View>
       </LinearGradient>
 
@@ -154,17 +155,17 @@ export default function WorkoutHistoryScreen({ navigation }: any) {
           <View style={[styles.statBox, { backgroundColor: colors.card }]}>
             <Ionicons name="calendar" size={24} color={colors.primary} />
             <Text style={[styles.statValue, { color: colors.text }]}>{totalStats.workouts}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Workouts</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.workoutsCountLabel}</Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.card }]}>
             <Ionicons name="time" size={24} color={colors.info} />
             <Text style={[styles.statValue, { color: colors.text }]}>{totalStats.duration}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Minutes</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.minutesCountLabel}</Text>
           </View>
           <View style={[styles.statBox, { backgroundColor: colors.card }]}>
             <Ionicons name="flame" size={24} color={colors.secondary} />
             <Text style={[styles.statValue, { color: colors.text }]}>{totalStats.calories}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Calories</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.calories}</Text>
           </View>
         </View>
 
@@ -196,7 +197,7 @@ export default function WorkoutHistoryScreen({ navigation }: any) {
                   },
                 ]}
               >
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {filter === 'all' ? t.all : filter === 'strength' ? t.filterStrength : filter === 'cardio' ? t.filterCardio : filter === 'yoga' ? t.filterYoga : t.filterHIIT}
               </Text>
             </TouchableOpacity>
           ))}

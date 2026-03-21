@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 export default function SelfAssessmentScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -48,29 +50,29 @@ export default function SelfAssessmentScreen({ navigation }: any) {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact number is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.gender) newErrors.gender = 'Gender is required';
-    if (!formData.age.trim()) newErrors.age = 'Age is required';
-    if (!formData.weight.trim()) newErrors.weight = 'Weight is required';
-    if (!formData.height.trim()) newErrors.height = 'Height is required';
+    if (!formData.name.trim()) newErrors.name = t.saNameLabel;
+    if (!formData.contactNumber.trim()) newErrors.contactNumber = t.saContactLabel;
+    if (!formData.email.trim()) newErrors.email = t.saEmailLabel;
+    if (!formData.gender) newErrors.gender = t.saGenderLabel;
+    if (!formData.age.trim()) newErrors.age = t.saAgeLabel;
+    if (!formData.weight.trim()) newErrors.weight = t.saWeightLabel;
+    if (!formData.height.trim()) newErrors.height = t.saHeightLabel;
     if (formData.hasMedicalConditions && !formData.medicalConditionsDetails.trim()) {
-      newErrors.medicalConditionsDetails = 'Please provide details';
+      newErrors.medicalConditionsDetails = t.saMedicalDetailsLabel;
     }
     if (formData.takingMedications && !formData.medicationsDetails.trim()) {
-      newErrors.medicationsDetails = 'Please provide details';
+      newErrors.medicationsDetails = t.saMedDetailsLabel;
     }
-    if (!formData.followedDietPlans) newErrors.followedDietPlans = 'This field is required';
-    if (!formData.dietType) newErrors.dietType = 'Diet type is required';
-    if (!formData.fitnessGoal.trim()) newErrors.fitnessGoal = 'Fitness goal is required';
-    if (!formData.biggestFear) newErrors.biggestFear = 'This field is required';
-    if (formData.biggestFear === 'Other' && !formData.biggestFearOther.trim()) {
-      newErrors.biggestFearOther = 'Please specify';
+    if (!formData.followedDietPlans) newErrors.followedDietPlans = t.error;
+    if (!formData.dietType) newErrors.dietType = t.error;
+    if (!formData.fitnessGoal.trim()) newErrors.fitnessGoal = t.saCurrentGoalQ;
+    if (!formData.biggestFear) newErrors.biggestFear = t.error;
+    if (formData.biggestFear === t.saFearOpt5 && !formData.biggestFearOther.trim()) {
+      newErrors.biggestFearOther = t.saFearSpecify;
     }
-    if (!formData.activityLevel) newErrors.activityLevel = 'Activity level is required';
-    if (!formData.typicalMeals.trim()) newErrors.typicalMeals = 'Please list your typical meals';
-    if (!formData.workoutPreference) newErrors.workoutPreference = 'Workout preference is required';
+    if (!formData.activityLevel) newErrors.activityLevel = t.error;
+    if (!formData.typicalMeals.trim()) newErrors.typicalMeals = t.saTypicalMealsQ;
+    if (!formData.workoutPreference) newErrors.workoutPreference = t.error;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -99,7 +101,7 @@ export default function SelfAssessmentScreen({ navigation }: any) {
       navigation.replace('CoachSelection');
     } catch (error) {
       console.error('Error saving assessment data:', error);
-      alert('Failed to save data. Please try again.');
+      alert(t.error);
     }
   };
 
@@ -239,7 +241,7 @@ export default function SelfAssessmentScreen({ navigation }: any) {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Self-Assessment</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.saScreenTitle}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -251,96 +253,96 @@ export default function SelfAssessmentScreen({ navigation }: any) {
         <View style={[styles.introCard, { backgroundColor: colors.card }]}>
           <Ionicons name="information-circle" size={24} color={colors.info} />
           <Text style={[styles.introText, { color: colors.textSecondary }]}>
-            Please fill out this comprehensive questionnaire to help us create your personalized fitness and nutrition plan.
+            {t.saIntroText}
           </Text>
         </View>
 
         {/* Basic Information */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Basic Information</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saBasicInfoSection}</Text>
         
-        {renderInput('Name', formData.name, 'name', 'Enter your full name', { required: true })}
-        {renderInput('Contact Number', formData.contactNumber, 'contactNumber', 'Enter your contact number', { required: true, keyboardType: 'phone-pad' })}
-        {renderInput('Email ID', formData.email, 'email', 'Enter your email', { required: true, keyboardType: 'email-address' })}
+        {renderInput(t.saNameLabel, formData.name, 'name', t.saNamePlaceholder, { required: true })}
+        {renderInput(t.saContactLabel, formData.contactNumber, 'contactNumber', t.saContactPlaceholder, { required: true, keyboardType: 'phone-pad' })}
+        {renderInput(t.saEmailLabel, formData.email, 'email', t.saEmailPlaceholder, { required: true, keyboardType: 'email-address' })}
         
-        {renderRadioGroup('Gender', ['Male', 'Female', 'Other'], 'gender', true)}
+        {renderRadioGroup(t.saGenderLabel, [t.saGenderMale, t.saGenderFemale, t.saGenderOther], 'gender', true)}
         
-        {renderInput('Age', formData.age, 'age', 'Enter your age', { required: true, keyboardType: 'numeric' })}
-        {renderInput('Weight (kg)', formData.weight, 'weight', 'Enter your weight', { required: true, keyboardType: 'numeric' })}
-        {renderInput('Height (cm)', formData.height, 'height', 'Enter your height', { required: true, keyboardType: 'numeric' })}
+        {renderInput(t.saAgeLabel, formData.age, 'age', t.saAgePlaceholder, { required: true, keyboardType: 'numeric' })}
+        {renderInput(t.saWeightLabel, formData.weight, 'weight', t.saWeightPlaceholder, { required: true, keyboardType: 'numeric' })}
+        {renderInput(t.saHeightLabel, formData.height, 'height', t.saHeightPlaceholder, { required: true, keyboardType: 'numeric' })}
 
         {/* Medical Information */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Medical Information</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saMedicalInfoSection}</Text>
         
-        {renderYesNoSwitch('Do you have any medical conditions?', formData.hasMedicalConditions, 'hasMedicalConditions', true)}
+        {renderYesNoSwitch(t.saMedicalConditionsQ, formData.hasMedicalConditions, 'hasMedicalConditions', true)}
         
         {formData.hasMedicalConditions && (
-          renderInput('Please provide details', formData.medicalConditionsDetails, 'medicalConditionsDetails', 'List your medical conditions', { required: true, multiline: true, numberOfLines: 3 })
+          renderInput(t.saMedicalDetailsLabel, formData.medicalConditionsDetails, 'medicalConditionsDetails', t.saMedicalPlaceholder, { required: true, multiline: true, numberOfLines: 3 })
         )}
 
-        {renderYesNoSwitch('Are you currently taking any medications or supplements?', formData.takingMedications, 'takingMedications', true)}
+        {renderYesNoSwitch(t.saMedicationsQ, formData.takingMedications, 'takingMedications', true)}
         
         {formData.takingMedications && (
-          renderInput('Please provide details', formData.medicationsDetails, 'medicationsDetails', 'List your medications/supplements', { required: true, multiline: true, numberOfLines: 3 })
+          renderInput(t.saMedDetailsLabel, formData.medicationsDetails, 'medicationsDetails', t.saMedPlaceholder, { required: true, multiline: true, numberOfLines: 3 })
         )}
 
         {/* Diet History */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Diet History</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saDietSection}</Text>
         
-        {renderRadioGroup('Have you followed any diet plans before?', ['No, this is my first time', 'Yes, a few', 'Yes, many'], 'followedDietPlans', true)}
+        {renderRadioGroup(t.saDietBeforeQ, [t.saDietOption1, t.saDietOption2, t.saDietOption3], 'followedDietPlans', true)}
         
-        {(formData.followedDietPlans === 'Yes, a few' || formData.followedDietPlans === 'Yes, many') && (
-          renderInput('What kind of diets have you tried?', formData.dietPlansDetails, 'dietPlansDetails', 'E.g., Keto, Paleo, Vegan, etc.', { multiline: true, numberOfLines: 2 })
+        {(formData.followedDietPlans === t.saDietOption2 || formData.followedDietPlans === t.saDietOption3) && (
+          renderInput(t.saDietTypesQ, formData.dietPlansDetails, 'dietPlansDetails', t.saDietTypesPlaceholder, { multiline: true, numberOfLines: 2 })
         )}
 
         {renderRadioGroup(
-          'Which type of diet do you follow?',
-          ['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Pescatarian', 'Flexitarian', 'No Preference'],
+          t.saDietTypeQ,
+          [t.saDietTypeVegetarian, t.saDietTypeNonVeg, t.saDietTypeVegan, t.saDietTypePesc, t.saDietTypeFlex, t.saDietTypeNoPref],
           'dietType',
           true
         )}
 
-        {renderInput('Do you have any known food allergies or intolerances?', formData.foodAllergies, 'foodAllergies', 'E.g., Lactose, Gluten, Nuts, etc. (or write "None")', { required: true, multiline: true, numberOfLines: 2 })}
+        {renderInput(t.saFoodAllergiesQ, formData.foodAllergies, 'foodAllergies', t.saFoodAllergiesPlaceholder, { required: true, multiline: true, numberOfLines: 2 })}
 
         {/* Fitness Goals */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Fitness Goals</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saFitnessGoalsSection}</Text>
         
-        {renderInput('What is your current health or fitness goal?', formData.fitnessGoal, 'fitnessGoal', 'E.g., Weight loss, Muscle gain, General fitness', { required: true, multiline: true, numberOfLines: 2 })}
+        {renderInput(t.saCurrentGoalQ, formData.fitnessGoal, 'fitnessGoal', t.saCurrentGoalPlaceholder, { required: true, multiline: true, numberOfLines: 2 })}
 
         {renderRadioGroup(
-          'What is your biggest fear or struggle in your fitness/diet journey?',
-          ['I lose motivation', 'I don\'t stick to routines', 'I get confused with what to eat', 'I struggle with emotional eating', 'Other'],
+          t.saBiggestFearQ,
+          [t.saFearOpt1, t.saFearOpt2, t.saFearOpt3, t.saFearOpt4, t.saFearOpt5],
           'biggestFear',
           true
         )}
 
-        {formData.biggestFear === 'Other' && (
-          renderInput('Please specify', formData.biggestFearOther, 'biggestFearOther', 'Describe your struggle', { required: true })
+        {formData.biggestFear === t.saFearOpt5 && (
+          renderInput(t.saFearSpecify, formData.biggestFearOther, 'biggestFearOther', t.saFearSpecifyPlaceholder, { required: true })
         )}
 
         {/* Activity & Lifestyle */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Activity & Lifestyle</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saActivitySection}</Text>
         
         {renderRadioGroup(
-          'What is your Daily Activity Level?',
-          ['Sedentary (little or no exercise)', 'Lightly Active (1-3 days/week)', 'Moderately Active (3-5 days/week)', 'Very Active (6-7 days/week)', 'Extremely Active (intense exercise daily)'],
+          t.saActivityLevelQ,
+          [t.saActivitySedentary, t.saActivityLightlyActive, t.saActivityModerately, t.saActivityVeryActive, t.saActivityExtremelyActive],
           'activityLevel',
           true
         )}
 
-        {renderInput('Please list your typical daily meals', formData.typicalMeals, 'typicalMeals', 'Breakfast, lunch, snacks, dinner, etc.', { required: true, multiline: true, numberOfLines: 5 })}
+        {renderInput(t.saTypicalMealsQ, formData.typicalMeals, 'typicalMeals', t.saTypicalMealsPlaceholder, { required: true, multiline: true, numberOfLines: 5 })}
 
-        {renderRadioGroup('Do you prefer Gym or Home Workouts?', ['Gym Workout', 'Home Workout', 'Both'], 'workoutPreference', true)}
+        {renderRadioGroup(t.saWorkoutPrefQ, [t.saWorkoutPrefGym, t.saWorkoutPrefHome, t.saWorkoutPrefBoth], 'workoutPreference', true)}
 
         {/* Optional Notes */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Additional Information</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.saAdditionalInfoSection}</Text>
         
-        {renderInput('Anything else you\'d like me to know?', formData.additionalNotes, 'additionalNotes', 'Optional: Share any additional information', { multiline: true, numberOfLines: 4 })}
+        {renderInput(t.saAdditionalNotesQ, formData.additionalNotes, 'additionalNotes', t.saAdditionalNotesPlaceholder, { multiline: true, numberOfLines: 4 })}
 
         <TouchableOpacity
           style={[styles.submitButton, { backgroundColor: colors.primary }]}
           onPress={handleSubmit}
         >
-          <Text style={styles.submitButtonText}>Complete Assessment</Text>
+          <Text style={styles.submitButtonText}>{t.saSubmitBtn}</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
 

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -26,6 +27,7 @@ interface ProgressPhoto {
 
 export default function ProgressPhotosScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedView, setSelectedView] = useState<'grid' | 'timeline'>('grid');
 
   const photos: ProgressPhoto[] = [
@@ -83,7 +85,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Progress Photos</Text>
+          <Text style={styles.headerTitle}>{t.ppScreenTitle}</Text>
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="add-circle" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -96,17 +98,17 @@ export default function ProgressPhotosScreen({ navigation }: any) {
           <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
             <Ionicons name="calendar" size={24} color={colors.primary} />
             <Text style={[styles.summaryValue, { color: colors.text }]}>{totalDays}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Days</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t.ppDaysLabel}</Text>
           </View>
           <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
             <Ionicons name="trending-down" size={24} color={colors.success} />
             <Text style={[styles.summaryValue, { color: colors.text }]}>{totalWeightLoss.toFixed(1)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>kg Lost</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t.ppKgLostLabel}</Text>
           </View>
           <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
             <Ionicons name="images" size={24} color={colors.info} />
             <Text style={[styles.summaryValue, { color: colors.text }]}>{photos.length}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Photos</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t.ppPhotosLabel}</Text>
           </View>
         </View>
 
@@ -133,7 +135,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
                 { color: selectedView === 'grid' ? '#FFF' : colors.text },
               ]}
             >
-              Grid
+              {t.ppGridView}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -157,7 +159,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
                 { color: selectedView === 'timeline' ? '#FFF' : colors.text },
               ]}
             >
-              Timeline
+              {t.ppTimelineView}
             </Text>
           </TouchableOpacity>
         </View>
@@ -174,7 +176,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
                 <View style={styles.photoPlaceholder}>
                   <Ionicons name="image" size={48} color={colors.textSecondary} />
                   <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
-                    Add Photo
+                    {t.ppAddPhotoBtn}
                   </Text>
                 </View>
                 <View style={styles.photoInfo}>
@@ -194,7 +196,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
             >
               <Ionicons name="add-circle" size={48} color={colors.primary} />
               <Text style={[styles.addPhotoText, { color: colors.primary }]}>
-                Add New Photo
+                {t.ppAddNewPhotoTitle}
               </Text>
             </TouchableOpacity>
           </View>
@@ -239,7 +241,7 @@ export default function ProgressPhotosScreen({ navigation }: any) {
                         -{(photos[index - 1].weight - photo.weight).toFixed(1)} kg
                       </Text>
                       <Text style={[styles.progressDays, { color: colors.textSecondary }]}>
-                        in {getDaysDifference(photos[index - 1].date, photo.date)} days
+                        {t.ppInDaysLabel(getDaysDifference(photos[index - 1].date, photo.date))}
                       </Text>
                     </View>
                   )}

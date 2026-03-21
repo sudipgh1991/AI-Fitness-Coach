@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
@@ -20,6 +21,7 @@ type PaymentMethodType = 'upi' | 'card' | 'netbanking' | null;
 
 export default function PaymentScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>(null);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   
@@ -34,12 +36,12 @@ export default function PaymentScreen({ navigation }: any) {
   const plans = {
     monthly: {
       price: 499,
-      duration: 'month',
+      duration: t.payMonthDuration,
       savings: 0,
     },
     yearly: {
       price: 4999,
-      duration: 'year',
+      duration: t.payYearDuration,
       savings: 989,
     },
   };
@@ -48,35 +50,35 @@ export default function PaymentScreen({ navigation }: any) {
 
   const handlePayment = () => {
     if (!selectedMethod) {
-      Alert.alert('Error', 'Please select a payment method');
+      Alert.alert(t.error, t.paySelectMethodError);
       return;
     }
 
     // Validate based on payment method
     if (selectedMethod === 'upi' && !upiId) {
-      Alert.alert('Error', 'Please enter your UPI ID');
+      Alert.alert(t.error, t.payEnterUPIError);
       return;
     }
 
     if (selectedMethod === 'card') {
       if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
-        Alert.alert('Error', 'Please fill in all card details');
+        Alert.alert(t.error, t.payFillCardError);
         return;
       }
     }
 
     if (selectedMethod === 'netbanking' && !selectedBank) {
-      Alert.alert('Error', 'Please select your bank');
+      Alert.alert(t.error, t.paySelectBankError);
       return;
     }
 
     // Simulate payment processing
     Alert.alert(
-      'Payment Successful! 🎉',
-      'Your premium membership has been activated.',
+      t.paySuccessTitle,
+      t.paySuccessMessage,
       [
         {
-          text: 'OK',
+          text: t.done,
           onPress: () => navigation.goBack(),
         },
       ]
@@ -101,12 +103,12 @@ export default function PaymentScreen({ navigation }: any) {
       >
         {isPopular && (
           <View style={[styles.popularBadge, { backgroundColor: colors.secondary }]}>
-            <Text style={styles.popularText}>POPULAR</Text>
+            <Text style={styles.popularText}>{t.payPopularBadge}</Text>
           </View>
         )}
         
         <Text style={[styles.planType, { color: colors.text }]}>
-          {type === 'monthly' ? 'Monthly' : 'Yearly'}
+          {type === 'monthly' ? t.payMonthlyPlan : t.payYearlyPlan}
         </Text>
         
         <View style={styles.priceContainer}>
@@ -120,7 +122,7 @@ export default function PaymentScreen({ navigation }: any) {
         {plan.savings > 0 && (
           <View style={[styles.savingsBadge, { backgroundColor: colors.success + '20' }]}>
             <Text style={[styles.savingsText, { color: colors.success }]}>
-              Save ₹{plan.savings}
+              {t.paySaveAmount(plan.savings)}
             </Text>
           </View>
         )}
@@ -179,16 +181,16 @@ export default function PaymentScreen({ navigation }: any) {
         {/* Premium Features */}
         <Card>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Premium Features
+            {t.payPremiumFeaturesTitle}
           </Text>
           <View style={styles.featuresList}>
             {[
-              'Personalized AI workout plans',
-              'Custom meal planning',
-              'Advanced analytics & insights',
-              'Priority chat support',
-              'Ad-free experience',
-              'Unlimited workout tracking',
+              t.payFeature1,
+              t.payFeature2,
+              t.payFeature3,
+              t.payFeature4,
+              t.payFeature5,
+              t.payFeature6,
             ].map((feature, index) => (
               <View key={index} style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={20} color={colors.success} />
@@ -203,7 +205,7 @@ export default function PaymentScreen({ navigation }: any) {
         {/* Plan Selection */}
         <Card>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Choose Your Plan
+            {t.payChoosePlanTitle}
           </Text>
           <View style={styles.plansContainer}>
             <PlanCard type="monthly" />
@@ -214,18 +216,18 @@ export default function PaymentScreen({ navigation }: any) {
         {/* Payment Methods */}
         <Card>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Payment Method
+            {t.payMethodLabel}
           </Text>
           <View style={styles.methodsContainer}>
-            <PaymentMethodButton type="upi" icon="qr-code" title="UPI" />
-            <PaymentMethodButton type="card" icon="card" title="Card" />
-            <PaymentMethodButton type="netbanking" icon="business" title="Net Banking" />
+            <PaymentMethodButton type="upi" icon="qr-code" title={t.payUPI} />
+            <PaymentMethodButton type="card" icon="card" title={t.payCard} />
+            <PaymentMethodButton type="netbanking" icon="business" title={t.payNetBanking} />
           </View>
         </Card>
 
         {/* Payment Details Form */}
         {selectedMethod === 'upi' && (
-          <Card title="Enter UPI ID">
+          <Card title={t.payEnterUPITitle}>
             <InputField
               value={upiId}
               onChangeText={setUpiId}
@@ -234,15 +236,15 @@ export default function PaymentScreen({ navigation }: any) {
               autoCapitalize="none"
             />
             <Text style={[styles.helpText, { color: colors.textSecondary }]}>
-              You will receive a payment request on your UPI app
+              {t.payUPIHint}
             </Text>
           </Card>
         )}
 
         {selectedMethod === 'card' && (
-          <Card title="Card Details">
+          <Card title={t.payCardDetailsTitle}>
             <InputField
-              label="Card Number"
+              label={t.payCardNumberLabel}
               value={cardNumber}
               onChangeText={setCardNumber}
               placeholder="1234 5678 9012 3456"
@@ -252,7 +254,7 @@ export default function PaymentScreen({ navigation }: any) {
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <InputField
-                  label="Expiry"
+                  label={t.payExpiryLabel}
                   value={cardExpiry}
                   onChangeText={setCardExpiry}
                   placeholder="MM/YY"
@@ -261,7 +263,7 @@ export default function PaymentScreen({ navigation }: any) {
               </View>
               <View style={styles.halfWidth}>
                 <InputField
-                  label="CVV"
+                  label={t.payCVVLabel}
                   value={cardCvv}
                   onChangeText={setCardCvv}
                   placeholder="123"
@@ -271,7 +273,7 @@ export default function PaymentScreen({ navigation }: any) {
               </View>
             </View>
             <InputField
-              label="Cardholder Name"
+              label={t.payCardholderLabel}
               value={cardName}
               onChangeText={setCardName}
               placeholder="John Doe"
@@ -281,7 +283,7 @@ export default function PaymentScreen({ navigation }: any) {
         )}
 
         {selectedMethod === 'netbanking' && (
-          <Card title="Select Bank">
+          <Card title={t.paySelectBankTitle}>
             {banks.map((bank) => (
               <TouchableOpacity
                 key={bank}
@@ -306,10 +308,10 @@ export default function PaymentScreen({ navigation }: any) {
         )}
 
         {/* Order Summary */}
-        <Card title="Order Summary">
+        <Card title={t.payOrderSummaryTitle}>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-              {selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'} Plan
+              {selectedPlan === 'monthly' ? t.payMonthlyPlan : t.payYearlyPlan}
             </Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>
               ₹{currentPlan.price}
@@ -317,7 +319,7 @@ export default function PaymentScreen({ navigation }: any) {
           </View>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-              Tax (18%)
+              {t.payTaxLabel}
             </Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>
               ₹{Math.round(currentPlan.price * 0.18)}
@@ -326,7 +328,7 @@ export default function PaymentScreen({ navigation }: any) {
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.summaryRow}>
             <Text style={[styles.totalLabel, { color: colors.text }]}>
-              Total
+              {t.payTotalLabel}
             </Text>
             <Text style={[styles.totalValue, { color: colors.primary }]}>
               ₹{currentPlan.price + Math.round(currentPlan.price * 0.18)}
@@ -337,7 +339,7 @@ export default function PaymentScreen({ navigation }: any) {
         {/* Pay Button */}
         <View style={styles.payButtonContainer}>
           <Button
-            title={`Pay ₹${currentPlan.price + Math.round(currentPlan.price * 0.18)}`}
+            title={t.payNowBtn(currentPlan.price + Math.round(currentPlan.price * 0.18))}
             onPress={handlePayment}
             fullWidth
             size="large"

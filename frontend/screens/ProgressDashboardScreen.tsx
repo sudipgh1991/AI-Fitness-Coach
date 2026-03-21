@@ -12,12 +12,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function ProgressDashboardScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | '3months'>('week');
   const [selectedMetric, setSelectedMetric] = useState<'steps' | 'water' | 'weight' | 'workouts'>('steps');
 
@@ -251,7 +253,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Progress Dashboard</Text>
+          <Text style={styles.headerTitle}>{t.pdScreenTitle}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -261,7 +263,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Quick Stats */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Overall Progress</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.pdOverallProgressTitle}</Text>
           <ProgressChart
             data={progressChartData}
             width={screenWidth - Spacing.lg * 4}
@@ -294,7 +296,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
               <View key={key} style={styles.statCard}>
                 <Text style={[styles.statValue, { color: colors.text }]}>{value}%</Text>
                 <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                  {key === 'steps' ? t.steps : key === 'water' ? t.water : key === 'nutrition' ? t.goalsCatNutrition : key === 'workouts' ? t.workout : key === 'sleep' ? t.sleep : t.habits}
                 </Text>
               </View>
             ))}
@@ -333,7 +335,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
                     { color: selectedMetric === metric ? '#FFF' : colors.text },
                   ]}
                 >
-                  {metric.charAt(0).toUpperCase() + metric.slice(1)}
+                  {metric === 'steps' ? t.steps : metric === 'water' ? t.water : metric === 'weight' ? t.weight : t.workout}
                 </Text>
               </TouchableOpacity>
             );
@@ -373,7 +375,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
 
           <View style={styles.goalRow}>
             <Text style={[styles.goalText, { color: colors.textSecondary }]}>
-              Goal: {metricInfo.goal} {metricInfo.unit}
+              {t.pdGoalLabel} {metricInfo.goal} {metricInfo.unit}
             </Text>
           </View>
         </View>
@@ -397,7 +399,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
                   { color: selectedPeriod === period ? '#FFF' : colors.text },
                 ]}
               >
-                {period === '3months' ? '3 Months' : period.charAt(0).toUpperCase() + period.slice(1)}
+                {period === '3months' ? t.pd3MonthsLabel : period === 'week' ? t.pdWeekLabel : t.pdMonthLabel}
               </Text>
             </TouchableOpacity>
           ))}
@@ -406,7 +408,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
         {/* Trend Chart */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Trend Analysis
+            {t.pdTrendAnalysisTitle}
           </Text>
           <LineChart
             data={getChartData()}
@@ -438,7 +440,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="git-compare" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              This Week vs Last Week
+              {t.pdThisWeekVsLast}
             </Text>
           </View>
 
@@ -450,7 +452,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
               <View key={key} style={styles.comparisonRow}>
                 <View style={styles.comparisonLeft}>
                   <Text style={[styles.comparisonLabel, { color: colors.text }]}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    {key === 'steps' ? t.steps : key === 'water' ? t.water : key === 'workouts' ? t.workout : key === 'calories' ? t.calories : t.sleep}
                   </Text>
                   <Text style={[styles.comparisonValues, { color: colors.textSecondary }]}>
                     {value} vs {lastWeekValue}
@@ -488,7 +490,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="trophy" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Milestones
+              {t.pdMilestonesTitle}
             </Text>
           </View>
           {milestones.map((milestone, index) => (
@@ -518,7 +520,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
 
         {/* Quick Actions */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.pdQuickActionsTitle}</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary + '10' }]}
@@ -526,7 +528,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
             >
               <Ionicons name="analytics" size={24} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.primary }]}>
-                Weekly Review
+                {t.pdWeeklyReviewBtn}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -535,7 +537,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
             >
               <Ionicons name="flag" size={24} color={colors.secondary} />
               <Text style={[styles.actionText, { color: colors.secondary }]}>
-                Update Goals
+                {t.pdUpdateGoalsBtn}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -544,7 +546,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
             >
               <Ionicons name="images" size={24} color={colors.success} />
               <Text style={[styles.actionText, { color: colors.success }]}>
-                Progress Photos
+                {t.pdProgressPhotosBtn}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -553,7 +555,7 @@ export default function ProgressDashboardScreen({ navigation }: any) {
             >
               <Ionicons name="repeat" size={24} color={colors.warning} />
               <Text style={[styles.actionText, { color: colors.warning }]}>
-                Habits
+                {t.pdHabitsBtn}
               </Text>
             </TouchableOpacity>
           </View>

@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -29,6 +30,7 @@ interface Achievement {
 
 export default function AchievementsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
 
   const achievements: Achievement[] = [
     {
@@ -150,7 +152,7 @@ export default function AchievementsScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Achievements</Text>
+          <Text style={styles.headerTitle}>{t.achievements}</Text>
           <View style={{ width: 28 }} />
         </View>
 
@@ -158,17 +160,17 @@ export default function AchievementsScreen({ navigation }: any) {
         <View style={styles.headerStats}>
           <View style={styles.statContainer}>
             <Text style={styles.statValue}>{unlockedCount}/{achievements.length}</Text>
-            <Text style={styles.statLabel}>Unlocked</Text>
+            <Text style={styles.statLabel}>{t.achievementUnlocked}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statContainer}>
             <Text style={styles.statValue}>{totalPoints}</Text>
-            <Text style={styles.statLabel}>Points</Text>
+            <Text style={styles.statLabel}>{t.achievementPoints}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statContainer}>
             <Text style={styles.statValue}>{Math.round((unlockedCount / achievements.length) * 100)}%</Text>
-            <Text style={styles.statLabel}>Complete</Text>
+            <Text style={styles.statLabel}>{t.achievementComplete}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -177,7 +179,7 @@ export default function AchievementsScreen({ navigation }: any) {
         {/* Unlocked Achievements */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Unlocked ({achievements.filter(a => a.unlocked).length})
+            {t.achievementUnlocked} ({achievements.filter(a => a.unlocked).length})
           </Text>
           <View style={styles.achievementsGrid}>
             {achievements
@@ -211,7 +213,7 @@ export default function AchievementsScreen({ navigation }: any) {
         {/* Locked Achievements */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Locked ({achievements.filter(a => !a.unlocked).length})
+            {t.achievementLocked} ({achievements.filter(a => !a.unlocked).length})
           </Text>
           <View style={styles.achievementsGrid}>
             {achievements

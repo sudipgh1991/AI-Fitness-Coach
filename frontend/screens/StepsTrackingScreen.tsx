@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, ProgressChart, BarChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -26,6 +27,7 @@ interface StepsData {
 
 export default function StepsTrackingScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [todaySteps, setTodaySteps] = useState(8542);
   const [stepsGoal] = useState(10000);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month'>('week');
@@ -60,10 +62,10 @@ export default function StepsTrackingScreen({ navigation }: any) {
   };
 
   const getStatusMessage = () => {
-    if (percentage >= 100) return '🎉 Goal crushed!';
-    if (percentage >= 75) return '💪 Almost there!';
-    if (percentage >= 50) return '⚡ Halfway done!';
-    return '🚶 Keep moving!';
+    if (percentage >= 100) return t.stepsGoalCrushed;
+    if (percentage >= 75) return t.stepsAlmostThere;
+    if (percentage >= 50) return t.stepsHalfwayDone;
+    return t.stepsKeepMoving;
   };
 
   const weeklyChart = {
@@ -154,7 +156,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Steps Tracking</Text>
+          <Text style={styles.headerTitle}>{t.stepsScreenTitle}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -164,7 +166,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Today's Progress */}
         <View style={[styles.progressCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Activity</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.stepsTodaysActivity}</Text>
           
           {/* Circular Progress */}
           <View style={styles.circularProgressContainer}>
@@ -207,15 +209,15 @@ export default function StepsTrackingScreen({ navigation }: any) {
           <View style={styles.progressLegend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-              <Text style={[styles.legendText, { color: colors.textSecondary }]}>Steps</Text>
+              <Text style={[styles.legendText, { color: colors.textSecondary }]}>{t.stepsLegendSteps}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: colors.secondary }]} />
-              <Text style={[styles.legendText, { color: colors.textSecondary }]}>Active Time</Text>
+              <Text style={[styles.legendText, { color: colors.textSecondary }]}>{t.stepsLegendActiveTime}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.legendText, { color: colors.textSecondary }]}>Calories</Text>
+              <Text style={[styles.legendText, { color: colors.textSecondary }]}>{t.stepsLegendCalories}</Text>
             </View>
           </View>
 
@@ -234,7 +236,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
                 {todayDistance} km
               </Text>
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Distance
+                {t.stepsDistanceLabel}
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -243,7 +245,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
                 {todayCalories}
               </Text>
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Calories
+                {t.stepsLegendCalories}
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -252,7 +254,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
                 {todayActiveMinutes} min
               </Text>
               <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
-                Active
+                {t.stepsActiveLabel}
               </Text>
             </View>
           </View>
@@ -273,7 +275,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
                 { color: selectedPeriod === 'week' ? '#FFF' : colors.text },
               ]}
             >
-              Week
+              {t.stepsWeekLabel}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -289,7 +291,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
                 { color: selectedPeriod === 'month' ? '#FFF' : colors.text },
               ]}
             >
-              Month
+              {t.stepsMonthLabel}
             </Text>
           </TouchableOpacity>
         </View>
@@ -298,10 +300,10 @@ export default function StepsTrackingScreen({ navigation }: any) {
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <View style={styles.cardHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {selectedPeriod === 'week' ? 'This Week' : 'Monthly Overview'}
+              {selectedPeriod === 'week' ? t.stepsThisWeekTitle : t.stepsMonthlyTitle}
             </Text>
             <Text style={[styles.averageText, { color: colors.textSecondary }]}>
-              Avg: {weeklyAverage.toLocaleString()} steps
+              {t.stepsAvgLabel} {weeklyAverage.toLocaleString()} {t.stepsUnit}
             </Text>
           </View>
           
@@ -355,7 +357,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
           <View style={styles.goalLine}>
             <View style={[styles.dashedLine, { borderColor: colors.success }]} />
             <Text style={[styles.goalLineText, { color: colors.success }]}>
-              Goal: {stepsGoal.toLocaleString()} steps
+              {t.stepsGoalDisplay(stepsGoal)}
             </Text>
           </View>
         </View>
@@ -365,7 +367,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="trophy" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Achievements
+              {t.stepsAchievementsTitle}
             </Text>
           </View>
           {achievements.map((achievement, index) => (
@@ -401,7 +403,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="sparkles" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              AI Insights
+              {t.stepsAIInsightsTitle}
             </Text>
           </View>
           {insights.map((insight, index) => (
@@ -423,7 +425,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
 
         {/* Quick Actions */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.stepsQuickActionsTitle}</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary + '10' }]}
@@ -431,7 +433,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
             >
               <Ionicons name="fitness" size={28} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.primary }]}>
-                Start Workout
+                {t.stepsStartWorkout}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -440,7 +442,7 @@ export default function StepsTrackingScreen({ navigation }: any) {
             >
               <Ionicons name="flag" size={28} color={colors.secondary} />
               <Text style={[styles.actionText, { color: colors.secondary }]}>
-                Adjust Goal
+                {t.stepsAdjustGoal}
               </Text>
             </TouchableOpacity>
           </View>

@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -30,6 +31,7 @@ type Measurement = {
 
 export default function BodyMeasurementsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedMetric, setSelectedMetric] = useState<'weight' | 'bodyFat' | 'measurements'>('weight');
   const [showAddMeasurement, setShowAddMeasurement] = useState(false);
 
@@ -79,10 +81,11 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
     current: number,
     previous: number,
     unit: string,
-    icon: string
+    icon: string,
+    decreaseIsGood: boolean = false
   ) => {
     const change = calculateChange(current, previous);
-    const isImprovement = title.includes('Body Fat') || title.includes('Waist') ? !change.isPositive : change.isPositive;
+    const isImprovement = decreaseIsGood ? !change.isPositive : change.isPositive;
 
     return (
       <View style={[styles.metricCard, { backgroundColor: colors.card }]}>
@@ -114,7 +117,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
               {change.value} {unit}
             </Text>
             <Text style={[styles.metricChangeSince, { color: colors.textSecondary }]}>
-              since start
+              {t.bmStarting}
             </Text>
           </View>
         </LinearGradient>
@@ -140,8 +143,8 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Body Measurements</Text>
-            <Text style={styles.headerSubtitle}>Track your body composition</Text>
+            <Text style={styles.headerTitle}>{t.bmScreenTitle}</Text>
+            <Text style={styles.headerSubtitle}>{t.bmScreenSubtitle}</Text>
           </View>
           <TouchableOpacity
             style={styles.addButton}
@@ -169,7 +172,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 { color: selectedMetric === 'weight' ? '#FFF' : colors.text },
               ]}
             >
-              Weight
+              {t.bmTabWeight}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -187,7 +190,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 { color: selectedMetric === 'bodyFat' ? '#FFF' : colors.text },
               ]}
             >
-              Body Fat %
+              {t.bmTabBodyFat}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -205,7 +208,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 { color: selectedMetric === 'measurements' ? '#FFF' : colors.text },
               ]}
             >
-              Measurements
+              {t.bmTabMeasurements}
             </Text>
           </TouchableOpacity>
         </View>
@@ -213,7 +216,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
         {selectedMetric === 'weight' && (
           <>
             <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
-              <Text style={[styles.chartTitle, { color: colors.text }]}>Weight Trend</Text>
+              <Text style={[styles.chartTitle, { color: colors.text }]}>{t.bmWeightTrend}</Text>
               <LineChart
                 data={weightData}
                 width={screenWidth - Spacing.lg * 2 - 32}
@@ -240,7 +243,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
               <View style={styles.chartFooter}>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Starting
+                    {t.bmStarting}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.text }]}>
                     {firstMeasurement.weight} kg
@@ -248,7 +251,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 </View>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Current
+                    {t.bmCurrent}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.text }]}>
                     {latestMeasurement.weight} kg
@@ -256,7 +259,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 </View>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Change
+                    {t.bmChange}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.success }]}>
                     -{(firstMeasurement.weight - latestMeasurement.weight).toFixed(1)} kg
@@ -266,7 +269,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
             </View>
 
             <View style={styles.metricsGrid}>
-              {renderMetricCard('Current Weight', latestMeasurement.weight, firstMeasurement.weight, 'kg', 'scale')}
+              {renderMetricCard(t.bmCurrent, latestMeasurement.weight, firstMeasurement.weight, 'kg', 'scale', true)}
             </View>
           </>
         )}
@@ -274,7 +277,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
         {selectedMetric === 'bodyFat' && (
           <>
             <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
-              <Text style={[styles.chartTitle, { color: colors.text }]}>Body Fat % Trend</Text>
+              <Text style={[styles.chartTitle, { color: colors.text }]}>{t.bmBodyFatTrend}</Text>
               <LineChart
                 data={bodyFatData}
                 width={screenWidth - Spacing.lg * 2 - 32}
@@ -301,7 +304,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
               <View style={styles.chartFooter}>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Starting
+                    {t.bmStarting}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.text }]}>
                     {firstMeasurement.bodyFat}%
@@ -309,7 +312,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 </View>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Current
+                    {t.bmCurrent}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.text }]}>
                     {latestMeasurement.bodyFat}%
@@ -317,7 +320,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                 </View>
                 <View style={styles.chartStat}>
                   <Text style={[styles.chartStatLabel, { color: colors.textSecondary }]}>
-                    Change
+                    {t.bmChange}
                   </Text>
                   <Text style={[styles.chartStatValue, { color: colors.success }]}>
                     -{((firstMeasurement.bodyFat || 0) - (latestMeasurement.bodyFat || 0)).toFixed(1)}%
@@ -329,7 +332,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
             <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
               <Ionicons name="information-circle" size={24} color={colors.info} />
               <View style={styles.infoContent}>
-                <Text style={[styles.infoTitle, { color: colors.text }]}>Body Fat Ranges</Text>
+                <Text style={[styles.infoTitle, { color: colors.text }]}>{t.bmBodyFatRanges}</Text>
                 <Text style={[styles.infoText, { color: colors.textSecondary }]}>
                   Essential: 10-13% (men), 10-13% (women){'\n'}
                   Athletes: 14-20% (men), 14-20% (women){'\n'}
@@ -343,16 +346,16 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
 
         {selectedMetric === 'measurements' && (
           <View style={styles.measurementsGrid}>
-            {renderMetricCard('Chest', latestMeasurement.chest || 0, firstMeasurement.chest || 0, 'cm', 'body')}
-            {renderMetricCard('Waist', latestMeasurement.waist || 0, firstMeasurement.waist || 0, 'cm', 'resize')}
-            {renderMetricCard('Hips', latestMeasurement.hips || 0, firstMeasurement.hips || 0, 'cm', 'ellipse')}
-            {renderMetricCard('Arms', latestMeasurement.arms || 0, firstMeasurement.arms || 0, 'cm', 'fitness')}
-            {renderMetricCard('Thighs', latestMeasurement.thighs || 0, firstMeasurement.thighs || 0, 'cm', 'barbell')}
+            {renderMetricCard(t.bmChest, latestMeasurement.chest || 0, firstMeasurement.chest || 0, 'cm', 'body')}
+            {renderMetricCard(t.bmWaist, latestMeasurement.waist || 0, firstMeasurement.waist || 0, 'cm', 'resize', true)}
+            {renderMetricCard(t.bmHips, latestMeasurement.hips || 0, firstMeasurement.hips || 0, 'cm', 'ellipse')}
+            {renderMetricCard(t.bmArms, latestMeasurement.arms || 0, firstMeasurement.arms || 0, 'cm', 'fitness')}
+            {renderMetricCard(t.bmThighs, latestMeasurement.thighs || 0, firstMeasurement.thighs || 0, 'cm', 'barbell')}
           </View>
         )}
 
         <View style={[styles.historyCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.historyTitle, { color: colors.text }]}>Measurement History</Text>
+              <Text style={[styles.historyTitle, { color: colors.text }]}>{t.bmMeasurementHistory}</Text>
           {measurements.slice().reverse().map((measurement, index) => (
             <View
               key={measurement.date}
@@ -379,7 +382,7 @@ export default function BodyMeasurementsScreen({ navigation }: any) {
                   <>
                     <Text style={[styles.historySeparator, { color: colors.border }]}>•</Text>
                     <Text style={[styles.historyValue, { color: colors.textSecondary }]}>
-                      {measurement.bodyFat}% BF
+                      {measurement.bodyFat}{t.bmBodyFatLabel}
                     </Text>
                   </>
                 )}

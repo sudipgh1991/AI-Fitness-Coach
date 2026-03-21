@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '../components/Button';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { User } from '../types';
@@ -20,6 +21,7 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   const { phoneNumber } = route.params;
   const { colors } = useTheme();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(60);
@@ -55,7 +57,7 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   const handleVerifyOTP = async () => {
     const otpCode = otp.join('');
     if (otpCode.length !== 6) {
-      Alert.alert('Error', 'Please enter the complete OTP');
+      Alert.alert(t.error, t.enterCompleteOTP);
       return;
     }
 
@@ -85,7 +87,7 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
   const handleResendOTP = () => {
     if (timer > 0) return;
     
-    Alert.alert('Success', 'OTP has been resent to your phone');
+    Alert.alert(t.success, t.otpResent);
     setTimer(60);
     setOtp(['', '', '', '', '', '']);
   };
@@ -94,9 +96,9 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar style={colors.background === '#FFFFFF' ? 'dark' : 'light'} />
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>Verify OTP</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t.verifyOTPTitle}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Enter the 6-digit code sent to{'\n'}
+          {t.otpInstruction}{'\n'}
           {phoneNumber}
         </Text>
 
@@ -124,7 +126,7 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
         </View>
 
         <Button
-          title="Verify OTP"
+          title={t.verifyOTPTitle}
           onPress={handleVerifyOTP}
           loading={isLoading}
           fullWidth
@@ -134,12 +136,12 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
         <View style={styles.resendContainer}>
           {timer > 0 ? (
             <Text style={[styles.timerText, { color: colors.textSecondary }]}>
-              Resend OTP in {timer}s
+              {t.resendOTPTimer(timer)}
             </Text>
           ) : (
             <TouchableOpacity onPress={handleResendOTP}>
               <Text style={[styles.resendText, { color: colors.primary }]}>
-                Resend OTP
+                {t.resendOTPBtn}
               </Text>
             </TouchableOpacity>
           )}

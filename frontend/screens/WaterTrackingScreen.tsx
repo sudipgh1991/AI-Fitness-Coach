@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -25,6 +26,7 @@ interface WaterLog {
 
 export default function WaterTrackingScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [todayWater, setTodayWater] = useState(6);
   const [waterGoal] = useState(8);
   const [selectedAmount, setSelectedAmount] = useState(250); // ml
@@ -73,10 +75,10 @@ export default function WaterTrackingScreen({ navigation }: any) {
   };
 
   const getStatusMessage = () => {
-    if (isCompleted) return '🎉 Goal achieved!';
-    if (isOnTrack) return '💪 Almost there!';
-    if (todayWater >= waterGoal * 0.5) return '⚡ Halfway done!';
-    return '💧 Keep going!';
+    if (isCompleted) return t.waterGoalAchieved;
+    if (isOnTrack) return t.waterAlmostThere;
+    if (todayWater >= waterGoal * 0.5) return t.waterHalfwayDone;
+    return t.waterKeepGoing;
   };
 
   const aiInsights = [
@@ -113,7 +115,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Water Tracking</Text>
+          <Text style={styles.headerTitle}>{t.waterScreenTitle}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -123,7 +125,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Today's Progress */}
         <View style={[styles.progressCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Hydration</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.waterTodaysHydration}</Text>
           
           {/* Water Glass Visualization */}
           <View style={styles.waterGlassContainer}>
@@ -155,7 +157,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
                 {todayWater}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Glasses
+                {t.waterGlassesLabel}
               </Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -165,7 +167,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
                 {waterGoal}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Goal
+                {t.waterGoalLabel}
               </Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -175,7 +177,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
                 {Math.max(0, waterGoal - todayWater)}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                To Go
+                {t.waterToGoLabel}
               </Text>
             </View>
           </View>
@@ -189,28 +191,28 @@ export default function WaterTrackingScreen({ navigation }: any) {
 
           {/* Quick Add Buttons */}
           <View style={styles.quickAddContainer}>
-            <Text style={[styles.quickAddTitle, { color: colors.text }]}>Quick Add</Text>
+            <Text style={[styles.quickAddTitle, { color: colors.text }]}>{t.waterQuickAdd}</Text>
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.quickAddButton, { backgroundColor: colors.primary + '20' }]}
                 onPress={() => addWater(0.5)}
               >
                 <Ionicons name="water" size={20} color={colors.primary} />
-                <Text style={[styles.quickAddText, { color: colors.primary }]}>½ Glass</Text>
+                <Text style={[styles.quickAddText, { color: colors.primary }]}>{t.waterHalfGlass}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.quickAddButton, { backgroundColor: colors.primary + '20' }]}
                 onPress={() => addWater(1)}
               >
                 <Ionicons name="water" size={24} color={colors.primary} />
-                <Text style={[styles.quickAddText, { color: colors.primary }]}>1 Glass</Text>
+                <Text style={[styles.quickAddText, { color: colors.primary }]}>{t.waterOneGlass}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.quickAddButton, { backgroundColor: colors.primary + '20' }]}
                 onPress={() => addWater(2)}
               >
                 <Ionicons name="water" size={28} color={colors.primary} />
-                <Text style={[styles.quickAddText, { color: colors.primary }]}>2 Glasses</Text>
+                <Text style={[styles.quickAddText, { color: colors.primary }]}>{t.waterTwoGlasses}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -219,9 +221,9 @@ export default function WaterTrackingScreen({ navigation }: any) {
         {/* Weekly Trend */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <View style={styles.cardHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Trend</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.waterWeeklyTrend}</Text>
             <Text style={[styles.averageText, { color: colors.textSecondary }]}>
-              Avg: {(weeklyData.reduce((sum, d) => sum + d.amount, 0) / weeklyData.length).toFixed(1)} glasses/day
+              {t.waterAvgLabel}: {(weeklyData.reduce((sum, d) => sum + d.amount, 0) / weeklyData.length).toFixed(1)} {t.waterGlassesPerDay}
             </Text>
           </View>
           <LineChart
@@ -249,7 +251,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
           />
           <View style={styles.goalLine}>
             <View style={[styles.dashedLine, { borderColor: colors.success }]} />
-            <Text style={[styles.goalLineText, { color: colors.success }]}>Goal: 8 glasses</Text>
+            <Text style={[styles.goalLineText, { color: colors.success }]}>{t.waterGoalDisplay}</Text>
           </View>
         </View>
 
@@ -258,7 +260,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="sparkles" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              AI Insights
+              {t.waterAIInsightsTitle}
             </Text>
           </View>
           {aiInsights.map((insight, index) => (
@@ -283,7 +285,7 @@ export default function WaterTrackingScreen({ navigation }: any) {
           <View style={styles.cardHeader}>
             <Ionicons name="notifications" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Hydration Reminders
+              {t.waterHydrationReminders}
             </Text>
           </View>
           <TouchableOpacity 
@@ -292,40 +294,40 @@ export default function WaterTrackingScreen({ navigation }: any) {
           >
             <Ionicons name="alarm" size={20} color={colors.primary} />
             <Text style={[styles.reminderText, { color: colors.primary }]}>
-              Set Reminders
+              {t.waterSetReminders}
             </Text>
           </TouchableOpacity>
           <Text style={[styles.reminderHint, { color: colors.textSecondary }]}>
-            Get notified to drink water throughout the day
+            {t.waterRemindersHint}
           </Text>
         </View>
 
         {/* Tips */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>💡 Hydration Tips</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.waterTipsTitle}</Text>
           <View style={styles.tipsList}>
             <View style={styles.tipItem}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               <Text style={[styles.tipText, { color: colors.text }]}>
-                Start your day with a glass of water
+                {t.waterTip1}
               </Text>
             </View>
             <View style={styles.tipItem}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               <Text style={[styles.tipText, { color: colors.text }]}>
-                Drink water before each meal
+                {t.waterTip2}
               </Text>
             </View>
             <View style={styles.tipItem}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               <Text style={[styles.tipText, { color: colors.text }]}>
-                Keep a water bottle within reach
+                {t.waterTip3}
               </Text>
             </View>
             <View style={styles.tipItem}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               <Text style={[styles.tipText, { color: colors.text }]}>
-                Drink more during/after exercise
+                {t.waterTip4}
               </Text>
             </View>
           </View>

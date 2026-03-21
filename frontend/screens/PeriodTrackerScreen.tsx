@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
@@ -26,6 +27,7 @@ interface PeriodData {
 
 export default function PeriodTrackerScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [cycles, setCycles] = useState<PeriodData[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -48,7 +50,7 @@ export default function PeriodTrackerScreen({ navigation }: any) {
   const addCycle = () => {
     const length = parseInt(cycleLength);
     if (isNaN(length) || length < 20 || length > 45) {
-      Alert.alert('Invalid Input', 'Please enter a cycle length between 20-45 days');
+      Alert.alert(t.ptInvalidInput, t.ptInvalidLength);
       return;
     }
 
@@ -61,15 +63,15 @@ export default function PeriodTrackerScreen({ navigation }: any) {
 
     setCycles([newCycle, ...cycles]);
     setNotes('');
-    Alert.alert('Success', 'Cycle data added successfully');
+    Alert.alert(t.success, t.ptAddCycleSuccess);
   };
 
   const deleteCycle = (id: string) => {
     Alert.alert(
-      'Delete Cycle',
-      'Are you sure you want to delete this cycle record?',
+      t.ptDeleteCycleTitle,
+      t.ptDeleteCycleMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
@@ -94,13 +96,13 @@ export default function PeriodTrackerScreen({ navigation }: any) {
     const today = new Date();
     const daysSinceStart = Math.floor((today.getTime() - lastCycle.startDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (daysSinceStart < 0) return { phase: 'Future', color: colors.textSecondary };
-    if (daysSinceStart < 5) return { phase: 'Menstrual', color: colors.error, tip: 'Rest and recovery phase. Focus on gentle exercises.' };
-    if (daysSinceStart < 14) return { phase: 'Follicular', color: colors.info, tip: 'High energy! Good time for intense workouts.' };
-    if (daysSinceStart < 16) return { phase: 'Ovulation', color: colors.success, tip: 'Peak energy and strength. Push your limits!' };
-    if (daysSinceStart < lastCycle.cycleLength) return { phase: 'Luteal', color: colors.warning, tip: 'Energy may decrease. Focus on moderate activities.' };
+    if (daysSinceStart < 0) return { phase: t.ptPhaseFuture, color: colors.textSecondary };
+    if (daysSinceStart < 5) return { phase: t.ptPhaseMenstrual, color: colors.error, tip: t.ptTipMenstrual };
+    if (daysSinceStart < 14) return { phase: t.ptPhaseFollicular, color: colors.info, tip: t.ptTipFollicular };
+    if (daysSinceStart < 16) return { phase: t.ptPhaseOvulation, color: colors.success, tip: t.ptTipOvulation };
+    if (daysSinceStart < lastCycle.cycleLength) return { phase: t.ptPhaseLuteal, color: colors.warning, tip: t.ptTipLuteal };
     
-    return { phase: 'Late Cycle', color: colors.textSecondary };
+    return { phase: t.ptPhaseLate, color: colors.textSecondary };
   };
 
   const formatDate = (date: Date) => {
@@ -117,7 +119,7 @@ export default function PeriodTrackerScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Period Tracker</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.periodTracker}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -128,7 +130,7 @@ export default function PeriodTrackerScreen({ navigation }: any) {
             <View style={styles.phaseCard}>
               <View style={[styles.phaseBadge, { backgroundColor: phaseInfo.color + '20' }]}>
                 <Text style={[styles.phaseText, { color: phaseInfo.color }]}>
-                  {phaseInfo.phase} Phase
+                  {phaseInfo.phase} {t.ptPhaseLabel}
                 </Text>
               </View>
               {phaseInfo.tip && (
@@ -138,7 +140,7 @@ export default function PeriodTrackerScreen({ navigation }: any) {
               )}
               {nextCycle && (
                 <Text style={[styles.nextCycle, { color: colors.textSecondary }]}>
-                  Next cycle predicted: {formatDate(nextCycle)}
+                  {t.ptNextCyclePredicted}: {formatDate(nextCycle)}
                 </Text>
               )}
             </View>
@@ -146,9 +148,9 @@ export default function PeriodTrackerScreen({ navigation }: any) {
         )}
 
         {/* Add New Cycle */}
-        <Card title="Log New Cycle">
+        <Card title={t.ptLogNewCycle}>
           <View style={styles.inputSection}>
-            <Text style={[styles.label, { color: colors.text }]}>Cycle Start Date</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t.ptCycleStartDate}</Text>
             <TouchableOpacity
               style={[styles.dateButton, { backgroundColor: colors.background, borderColor: colors.border }]}
               onPress={() => setShowDatePicker(true)}
@@ -170,13 +172,13 @@ export default function PeriodTrackerScreen({ navigation }: any) {
                 />
                 {Platform.OS === 'ios' && (
                   <View style={styles.pickerButtons}>
-                    <Button title="Done" onPress={handleClosePicker} fullWidth />
+                    <Button title={t.ptDoneButton} onPress={handleClosePicker} fullWidth />
                   </View>
                 )}
               </View>
             )}
 
-            <Text style={[styles.label, { color: colors.text }]}>Cycle Length (days)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t.ptCycleLength}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={cycleLength}
@@ -186,24 +188,24 @@ export default function PeriodTrackerScreen({ navigation }: any) {
               placeholderTextColor={colors.textSecondary}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Notes (optional)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t.ptNotesOptional}</Text>
             <TextInput
               style={[styles.textArea, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={notes}
               onChangeText={setNotes}
               multiline
               numberOfLines={3}
-              placeholder="Any symptoms or observations..."
+              placeholder={t.ptNotesPlaceholder}
               placeholderTextColor={colors.textSecondary}
             />
 
-            <Button title="Add Cycle Data" onPress={addCycle} fullWidth />
+            <Button title={t.ptAddCycleData} onPress={addCycle} fullWidth />
           </View>
         </Card>
 
         {/* Cycle History */}
         {cycles.length > 0 && (
-          <Card title="Cycle History">
+          <Card title={t.ptCycleHistory}>
             {cycles.map((cycle) => (
               <View
                 key={cycle.id}
@@ -235,8 +237,7 @@ export default function PeriodTrackerScreen({ navigation }: any) {
           <View style={styles.infoCard}>
             <Ionicons name="information-circle-outline" size={24} color={colors.info} />
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              Track your menstrual cycle to optimize your workouts and nutrition based on your hormonal phases.
-              Understanding your cycle helps you work with your body, not against it!
+              {t.ptInfoText}
             </Text>
           </View>
         </Card>

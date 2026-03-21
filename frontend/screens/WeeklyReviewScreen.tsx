@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BarChart, ProgressChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
@@ -27,6 +28,7 @@ interface WeeklyMetrics {
 
 export default function WeeklyReviewScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [selectedWeek, setSelectedWeek] = useState('current');
 
   const weeklyMetrics: WeeklyMetrics = {
@@ -73,11 +75,11 @@ export default function WeeklyReviewScreen({ navigation }: any) {
   };
 
   const getScoreGrade = (score: number) => {
-    if (score >= 90) return { grade: 'A', message: 'Outstanding!' };
-    if (score >= 80) return { grade: 'B', message: 'Great Job!' };
-    if (score >= 70) return { grade: 'C', message: 'Good Effort!' };
-    if (score >= 60) return { grade: 'D', message: 'Keep Pushing!' };
-    return { grade: 'F', message: 'Let\'s Improve!' };
+    if (score >= 90) return { grade: 'A', message: t.weeklyReviewGradeA };
+    if (score >= 80) return { grade: 'B', message: t.weeklyReviewGradeB };
+    if (score >= 70) return { grade: 'C', message: t.weeklyReviewGradeC };
+    if (score >= 60) return { grade: 'D', message: t.weeklyReviewGradeD };
+    return { grade: 'F', message: t.weeklyReviewGradeF };
   };
 
   const achievements = [
@@ -174,6 +176,15 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
     },
   ];
 
+  const metricNames: Record<string, string> = {
+    steps: t.steps,
+    water: t.water,
+    workouts: t.workout,
+    nutrition: t.goalsCatNutrition,
+    sleep: t.sleep,
+    habits: t.habits,
+  };
+
   const scoreGrade = getScoreGrade(overallScore);
 
   return (
@@ -189,7 +200,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Weekly Review</Text>
+          <Text style={styles.headerTitle}>{t.weeklyReviewScreenTitle}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="#FFF" />
           </TouchableOpacity>
@@ -204,7 +215,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
             style={styles.scoreGradient}
           >
             <Text style={[styles.scoreLabel, { color: colors.textSecondary }]}>
-              Weekly Performance Score
+              {t.weeklyReviewScoreTitle}
             </Text>
             <View style={styles.scoreCircle}>
               <Text style={[styles.scoreValue, { color: getScoreColor(overallScore) }]}>
@@ -214,7 +225,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
             </View>
             <View style={[styles.gradeBox, { backgroundColor: getScoreColor(overallScore) + '20' }]}>
               <Text style={[styles.gradeText, { color: getScoreColor(overallScore) }]}>
-                Grade: {scoreGrade.grade}
+                {t.weeklyReviewGradeLabel} {scoreGrade.grade}
               </Text>
               <Text style={[styles.gradeMessage, { color: getScoreColor(overallScore) }]}>
                 {scoreGrade.message}
@@ -225,7 +236,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
 
         {/* Progress Breakdown */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Progress Breakdown</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.weeklyReviewProgressBreakdownTitle}</Text>
           <ProgressChart
             data={progressData}
             width={screenWidth - Spacing.lg * 5}
@@ -257,7 +268,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
             {Object.entries(weeklyMetrics).map(([key, value]) => (
               <View key={key} style={styles.metricCard}>
                 <Text style={[styles.metricName, { color: colors.textSecondary }]}>
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                  {metricNames[key] || (key.charAt(0).toUpperCase() + key.slice(1))}
                 </Text>
                 <Text style={[styles.metricCompletion, { color: colors.text }]}>
                   {value.completion}%
@@ -281,7 +292,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
         {/* Daily Completion */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Daily Goal Completion
+            {t.weeklyReviewDailyCompletionTitle}
           </Text>
           <BarChart
             data={dailyCompletion}
@@ -309,7 +320,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <View style={styles.cardHeader}>
             <Ionicons name="trophy" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              This Week's Achievements
+              {t.weeklyReviewAchievementsTitle}
             </Text>
           </View>
           {achievements.map((achievement, index) => (
@@ -334,7 +345,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <View style={styles.cardHeader}>
             <Ionicons name="sparkles" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              AI Coach Summary
+              {t.weeklyReviewAISummaryTitle}
             </Text>
           </View>
           <Text style={[styles.aiSummaryText, { color: colors.text }]}>
@@ -347,7 +358,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <View style={styles.cardHeader}>
             <Ionicons name="bulb" size={24} color={colors.warning} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Areas for Improvement
+              {t.weeklyReviewAreasTitle}
             </Text>
           </View>
           {areasForImprovement.map((area, index) => (
@@ -388,13 +399,13 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <View style={styles.cardHeader}>
             <Ionicons name="analytics" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Pattern Analysis
+              {t.weeklyReviewPatternTitle}
             </Text>
           </View>
           
           <View style={styles.patternSection}>
             <Text style={[styles.patternTitle, { color: colors.success }]}>
-              ✓ Strengths
+              {t.weeklyReviewStrengthsTitle}
             </Text>
             {weeklyPattern.strengths.map((strength, index) => (
               <View key={index} style={styles.patternItem}>
@@ -408,7 +419,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
 
           <View style={[styles.patternSection, { marginTop: Spacing.md }]}>
             <Text style={[styles.patternTitle, { color: colors.warning }]}>
-              ⚠ Challenges
+              {t.weeklyReviewChallengesTitle}
             </Text>
             {weeklyPattern.challenges.map((challenge, index) => (
               <View key={index} style={styles.patternItem}>
@@ -426,7 +437,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
           <View style={styles.cardHeader}>
             <Ionicons name="rocket" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text, marginLeft: Spacing.sm }]}>
-              Recommendations for Next Week
+              {t.weeklyReviewRecommendationsTitle}
             </Text>
           </View>
           {nextWeekRecommendations.map((rec, index) => (
@@ -447,7 +458,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
                       { color: rec.priority === 'high' ? colors.error : colors.warning },
                     ]}
                   >
-                    {rec.priority.toUpperCase()}
+                    {rec.priority === 'high' ? t.weeklyReviewHighPriority : t.weeklyReviewMediumPriority}
                   </Text>
                 </View>
                 <Text style={[styles.categoryText, { color: colors.textSecondary }]}>
@@ -458,7 +469,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
                 {rec.recommendation}
               </Text>
               <Text style={[styles.impactText, { color: colors.primary }]}>
-                Impact: {rec.impact}
+                {t.weeklyReviewImpactLabel} {rec.impact}
               </Text>
             </View>
           ))}
@@ -471,7 +482,7 @@ Your pattern analysis shows you're most active during weekdays and tend to relax
         >
           <Ionicons name="checkmark-done" size={24} color="#FFF" />
           <Text style={styles.actionButtonText}>
-            Update My Goals for Next Week
+            {t.weeklyReviewUpdateGoalsBtn}
           </Text>
         </TouchableOpacity>
       </ScrollView>

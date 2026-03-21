@@ -13,12 +13,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function OnboardingScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [onboardingType, setOnboardingType] = useState<'call' | 'form' | null>(null);
   
@@ -60,9 +62,9 @@ export default function OnboardingScreen({ navigation }: any) {
     return (
       <View style={styles.stepContainer}>
         <Ionicons name="fitness" size={80} color={colors.primary} />
-        <Text style={[styles.title, { color: colors.text }]}>Welcome to Fitzen!</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t.onboardingWelcomeTitle}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Let's personalize your fitness journey
+          {t.onboardingSubtitleText}
         </Text>
         
         <TouchableOpacity
@@ -70,7 +72,7 @@ export default function OnboardingScreen({ navigation }: any) {
           onPress={() => navigation.replace('Login')}
         >
           <Text style={[styles.skipText, { color: colors.primary }]}>
-            Already a member? Sign in
+            {t.onboardingAlreadyMemberText}
           </Text>
         </TouchableOpacity>
         
@@ -80,7 +82,7 @@ export default function OnboardingScreen({ navigation }: any) {
         >
           <Ionicons name="star" size={16} color={colors.secondary} style={{ marginRight: 6 }} />
           <Text style={[styles.founderStoryText, { color: colors.secondary }]}>
-            See Success Stories & Transformations
+            {t.onboardingSeeStoriesBtn}
           </Text>
         </TouchableOpacity>
         
@@ -98,10 +100,10 @@ export default function OnboardingScreen({ navigation }: any) {
             >
               <Ionicons name="call" size={48} color={colors.primary} />
               <Text style={[styles.optionTitle, { color: colors.text }]}>
-                Live Consultation
+                {t.onboardingLiveConsultationOpt}
               </Text>
               <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-                Schedule a call with our expert coaches for personalized guidance
+                {t.onboardingLiveConsultationDesc}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -118,10 +120,10 @@ export default function OnboardingScreen({ navigation }: any) {
             >
               <Ionicons name="clipboard" size={48} color={colors.secondary} />
               <Text style={[styles.optionTitle, { color: colors.text }]}>
-                Self-Assessment
+                {t.onboardingSelfAssessmentOpt}
               </Text>
               <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-                Complete a detailed questionnaire at your own pace
+                {t.onboardingSelfAssessmentDesc}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -133,26 +135,26 @@ export default function OnboardingScreen({ navigation }: any) {
   const renderCallBooking = () => (
     <View style={styles.stepContainer}>
       <Ionicons name="call" size={64} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.text }]}>Schedule Your Call</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t.onboardingScheduleCallTitle}</Text>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Choose a convenient time for your consultation
+        {t.onboardingScheduleCallSub}
       </Text>
 
       <View style={styles.formContainer}>
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
           <Ionicons name="time" size={24} color={colors.info} />
           <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: colors.text }]}>Duration</Text>
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>30-45 minutes</Text>
+            <Text style={[styles.infoTitle, { color: colors.text }]}>{t.onboardingDuration}</Text>
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{t.onboardingDurationValue}</Text>
           </View>
         </View>
 
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
           <Ionicons name="person" size={24} color={colors.success} />
           <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: colors.text }]}>What to Expect</Text>
+            <Text style={[styles.infoTitle, { color: colors.text }]}>{t.onboardingWhatToExpect}</Text>
             <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              Discuss your fitness goals, health history, and get personalized recommendations
+              {t.onboardingCallExpect}
             </Text>
           </View>
         </View>
@@ -164,14 +166,14 @@ export default function OnboardingScreen({ navigation }: any) {
             handleComplete();
           }}
         >
-          <Text style={styles.buttonText}>Book Consultation</Text>
+          <Text style={styles.buttonText}>{t.onboardingBookConsultationBtn}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.secondaryButton, { borderColor: colors.border }]}
           onPress={() => setStep(1)}
         >
-          <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Go Back</Text>
+          <Text style={[styles.secondaryButtonText, { color: colors.text }]}>{t.goBack}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -366,8 +368,8 @@ export default function OnboardingScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Get Started</Text>
-          <Text style={styles.headerSubtitle}>Step {step} of 2</Text>
+        <Text style={styles.headerTitle}>{t.onboardingGetStarted}</Text>
+        <Text style={styles.headerSubtitle}>{t.onboardingStepOf(step, 2)}</Text>
         </View>
       </View>
 
