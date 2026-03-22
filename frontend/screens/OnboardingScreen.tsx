@@ -6,380 +6,249 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Dimensions,
+  Platform,
+  Modal,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 
-const screenWidth = Dimensions.get('window').width;
-
 export default function OnboardingScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const [step, setStep] = useState(1);
-  const [onboardingType, setOnboardingType] = useState<'call' | 'form' | null>(null);
-  
-  console.log('OnboardingScreen rendered - step:', step);
-  
-  // Form data
-  const [formData, setFormData] = useState({
-    age: '',
-    gender: '',
-    height: '',
-    currentWeight: '',
-    targetWeight: '',
-    activityLevel: '',
-    fitnessGoal: '',
-    medicalConditions: '',
-    dietaryPreferences: '',
-  });
 
-  const handleComplete = async () => {
-    try {
-      // Save onboarding data
-      await AsyncStorage.setItem('onboardingData', JSON.stringify({
-        type: onboardingType,
-        formData: onboardingType === 'form' ? formData : null,
-        completedAt: new Date().toISOString(),
-      }));
-      
-      // Navigate to coach selection
-      navigation.replace('CoachSelection');
-    } catch (error) {
-      console.error('Error saving onboarding data:', error);
-      // Still navigate even if save fails
-      navigation.replace('CoachSelection');
-    }
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [gender, setGender] = useState('');
+  const [dob, setDob] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date(2000, 0, 1));
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const formatDate = (date: Date) =>
+    `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}/${date.getFullYear()}`;
+
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!name.trim()) newErrors.name = 'Name is required';
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10)
+      newErrors.phone = 'Valid 10-digit phone number is required';
+    if (!gender) newErrors.gender = 'Please select your gender';
+    if (!dob) newErrors.dob = 'Date of birth is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const renderWelcomeStep = () => {
-    console.log('Rendering welcome step');
-    return (
-      <View style={styles.stepContainer}>
-        <Ionicons name="fitness" size={80} color={colors.primary} />
-        <Text style={[styles.title, { color: colors.text }]}>{t.onboardingWelcomeTitle}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {t.onboardingSubtitleText}
-        </Text>
-        
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={() => navigation.replace('Login')}
-        >
-          <Text style={[styles.skipText, { color: colors.primary }]}>
-            {t.onboardingAlreadyMemberText}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.founderStoryButton}
-          onPress={() => navigation.navigate('FounderStory')}
-        >
-          <Ionicons name="star" size={16} color={colors.secondary} style={{ marginRight: 6 }} />
-          <Text style={[styles.founderStoryText, { color: colors.secondary }]}>
-            {t.onboardingSeeStoriesBtn}
-          </Text>
-        </TouchableOpacity>
-        
-        <View style={styles.optionsContainer}>
-          <TouchableOpacity
-            style={[styles.optionCard, { backgroundColor: colors.card }]}
-            onPress={() => {
-              setOnboardingType('call');
-              setStep(2);
-            }}
-          >
-            <LinearGradient
-              colors={[colors.primary + '10', colors.card]}
-              style={styles.optionGradient}
-            >
-              <Ionicons name="call" size={48} color={colors.primary} />
-              <Text style={[styles.optionTitle, { color: colors.text }]}>
-                {t.onboardingLiveConsultationOpt}
-              </Text>
-              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-                {t.onboardingLiveConsultationDesc}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.optionCard, { backgroundColor: colors.card }]}
-            onPress={() => {
-              navigation.replace('SelfAssessment');
-            }}
-          >
-            <LinearGradient
-              colors={[colors.secondary + '10', colors.card]}
-              style={styles.optionGradient}
-            >
-              <Ionicons name="clipboard" size={48} color={colors.secondary} />
-              <Text style={[styles.optionTitle, { color: colors.text }]}>
-                {t.onboardingSelfAssessmentOpt}
-              </Text>
-              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
-                {t.onboardingSelfAssessmentDesc}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+  const handleSignup = () => {
+    if (!validate()) return;
+    navigation.navigate('VerifyOTP', {
+      phoneNumber: phone,
+      signupData: { name, phone, email, gender, dob: dob?.toISOString() },
+    });
   };
-
-  const renderCallBooking = () => (
-    <View style={styles.stepContainer}>
-      <Ionicons name="call" size={64} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.text }]}>{t.onboardingScheduleCallTitle}</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        {t.onboardingScheduleCallSub}
-      </Text>
-
-      <View style={styles.formContainer}>
-        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          <Ionicons name="time" size={24} color={colors.info} />
-          <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: colors.text }]}>{t.onboardingDuration}</Text>
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>{t.onboardingDurationValue}</Text>
-          </View>
-        </View>
-
-        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          <Ionicons name="person" size={24} color={colors.success} />
-          <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: colors.text }]}>{t.onboardingWhatToExpect}</Text>
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              {t.onboardingCallExpect}
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: colors.primary }]}
-          onPress={() => {
-            // In real app, show calendar booking
-            handleComplete();
-          }}
-        >
-          <Text style={styles.buttonText}>{t.onboardingBookConsultationBtn}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.secondaryButton, { borderColor: colors.border }]}
-          onPress={() => setStep(1)}
-        >
-          <Text style={[styles.secondaryButtonText, { color: colors.text }]}>{t.goBack}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderFormAssessment = () => (
-    <View style={styles.stepContainer}>
-      <Text style={[styles.title, { color: colors.text }]}>Tell Us About Yourself</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Help us create your perfect fitness plan
-      </Text>
-
-      <ScrollView style={styles.formScroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Age</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Enter your age"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-            value={formData.age}
-            onChangeText={(text) => setFormData({ ...formData, age: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Gender</Text>
-          <View style={styles.genderButtons}>
-            {['Male', 'Female', 'Other'].map((gender) => (
-              <TouchableOpacity
-                key={gender}
-                style={[
-                  styles.genderButton,
-                  {
-                    backgroundColor: formData.gender === gender ? colors.primary : colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={() => setFormData({ ...formData, gender })}
-              >
-                <Text
-                  style={[
-                    styles.genderButtonText,
-                    { color: formData.gender === gender ? '#FFF' : colors.text },
-                  ]}
-                >
-                  {gender}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Height (cm)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Enter your height"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-            value={formData.height}
-            onChangeText={(text) => setFormData({ ...formData, height: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Current Weight (kg)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Enter your current weight"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-            value={formData.currentWeight}
-            onChangeText={(text) => setFormData({ ...formData, currentWeight: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Target Weight (kg)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Enter your target weight"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-            value={formData.targetWeight}
-            onChangeText={(text) => setFormData({ ...formData, targetWeight: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Activity Level</Text>
-          <View style={styles.optionsList}>
-            {['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active'].map((level) => (
-              <TouchableOpacity
-                key={level}
-                style={[
-                  styles.optionItem,
-                  {
-                    backgroundColor: formData.activityLevel === level ? colors.primary : colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={() => setFormData({ ...formData, activityLevel: level })}
-              >
-                <Text
-                  style={[
-                    styles.optionItemText,
-                    { color: formData.activityLevel === level ? '#FFF' : colors.text },
-                  ]}
-                >
-                  {level}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Fitness Goal</Text>
-          <View style={styles.optionsList}>
-            {['Weight Loss', 'Muscle Gain', 'Maintenance', 'Improved Fitness'].map((goal) => (
-              <TouchableOpacity
-                key={goal}
-                style={[
-                  styles.optionItem,
-                  {
-                    backgroundColor: formData.fitnessGoal === goal ? colors.primary : colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={() => setFormData({ ...formData, fitnessGoal: goal })}
-              >
-                <Text
-                  style={[
-                    styles.optionItemText,
-                    { color: formData.fitnessGoal === goal ? '#FFF' : colors.text },
-                  ]}
-                >
-                  {goal}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Medical Conditions (Optional)</Text>
-          <TextInput
-            style={[styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Any medical conditions we should know about?"
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            numberOfLines={3}
-            value={formData.medicalConditions}
-            onChangeText={(text) => setFormData({ ...formData, medicalConditions: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Dietary Preferences (Optional)</Text>
-          <TextInput
-            style={[styles.textArea, { backgroundColor: colors.card, color: colors.text }]}
-            placeholder="Vegetarian, vegan, allergies, etc."
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            numberOfLines={3}
-            value={formData.dietaryPreferences}
-            onChangeText={(text) => setFormData({ ...formData, dietaryPreferences: text })}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: colors.primary }]}
-          onPress={handleComplete}
-        >
-          <Text style={styles.buttonText}>Complete Assessment</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.secondaryButton, { borderColor: colors.border }]}
-          onPress={() => setStep(1)}
-        >
-          <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Go Back</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: Spacing.xl }} />
-      </ScrollView>
-    </View>
-  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <View style={styles.headerContent}>
-        <Text style={styles.headerTitle}>{t.onboardingGetStarted}</Text>
-        <Text style={styles.headerSubtitle}>{t.onboardingStepOf(step, 2)}</Text>
-        </View>
-      </View>
-
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1 }}
+      {/* Header */}
+      <LinearGradient
+        colors={[colors.primary, colors.secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
       >
-        {step === 1 && renderWelcomeStep()}
-        {step === 2 && onboardingType === 'call' && renderCallBooking()}
-        {step === 2 && onboardingType === 'form' && renderFormAssessment()}
+        <TouchableOpacity
+          style={styles.alreadyMemberBtn}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Ionicons name="log-in-outline" size={18} color="#FFF" />
+          <Text style={styles.alreadyMemberText}>Already a member?</Text>
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Ionicons name="fitness" size={52} color="#FFF" />
+          <Text style={styles.headerTitle}>Create Account</Text>
+          <Text style={styles.headerSubtitle}>Start your fitness journey today</Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Full Name */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Full Name *</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                color: colors.text,
+                borderColor: errors.name ? '#EF4444' : colors.border,
+              },
+            ]}
+            placeholder="Enter your full name"
+            placeholderTextColor={colors.textSecondary}
+            value={name}
+            onChangeText={(v) => { setName(v); if (errors.name) setErrors((e) => ({ ...e, name: '' })); }}
+          />
+          {!!errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+        </View>
+
+        {/* Phone Number */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Phone Number *</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                color: colors.text,
+                borderColor: errors.phone ? '#EF4444' : colors.border,
+              },
+            ]}
+            placeholder="Enter your phone number"
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={(v) => { setPhone(v); if (errors.phone) setErrors((e) => ({ ...e, phone: '' })); }}
+          />
+          {!!errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+        </View>
+
+        {/* Email */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Email (Optional)</Text>
+          <TextInput
+            style={[
+              styles.input,
+              { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+            ]}
+            placeholder="Enter your email address"
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        {/* Gender */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Gender *</Text>
+          <View style={styles.genderRow}>
+            {['Male', 'Female', 'Other'].map((g) => (
+              <TouchableOpacity
+                key={g}
+                style={[
+                  styles.genderOption,
+                  {
+                    backgroundColor: gender === g ? colors.primary : colors.card,
+                    borderColor: errors.gender && !gender ? '#EF4444' : gender === g ? colors.primary : colors.border,
+                  },
+                ]}
+                onPress={() => { setGender(g); if (errors.gender) setErrors((e) => ({ ...e, gender: '' })); }}
+              >
+                <Text style={{ color: gender === g ? '#FFF' : colors.text, fontWeight: '600', fontSize: FontSizes.sm }}>
+                  {g}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {!!errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+        </View>
+
+        {/* Date of Birth */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Date of Birth *</Text>
+          <TouchableOpacity
+            style={[
+              styles.input,
+              styles.dobInput,
+              {
+                backgroundColor: colors.card,
+                borderColor: errors.dob ? '#EF4444' : colors.border,
+              },
+            ]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+            <Text style={{ color: dob ? colors.text : colors.textSecondary, fontSize: FontSizes.md, marginLeft: Spacing.sm }}>
+              {dob ? formatDate(dob) : 'Select your date of birth'}
+            </Text>
+          </TouchableOpacity>
+          {!!errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+        </View>
+
+        {/* Date Picker - Android inline dialog or iOS modal */}
+        {showDatePicker && Platform.OS === 'android' && (
+          <DateTimePicker
+            value={dob || new Date(2000, 0, 1)}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (event.type !== 'dismissed' && selectedDate) {
+                setDob(selectedDate);
+                if (errors.dob) setErrors((e) => ({ ...e, dob: '' }));
+              }
+            }}
+          />
+        )}
+
+        {/* iOS Date Picker Modal */}
+        {Platform.OS === 'ios' && (
+          <Modal visible={showDatePicker} transparent animationType="slide">
+            <View style={styles.datePickerOverlay}>
+              <View style={[styles.datePickerModal, { backgroundColor: colors.card }]}>
+                <View style={styles.datePickerHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={[styles.datePickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.datePickerTitle, { color: colors.text }]}>Date of Birth</Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setDob(tempDate);
+                      if (errors.dob) setErrors((e) => ({ ...e, dob: '' }));
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    <Text style={[styles.datePickerDone, { color: colors.primary }]}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={dob || tempDate}
+                  mode="date"
+                  display="spinner"
+                  maximumDate={new Date()}
+                  onChange={(_, selectedDate) => {
+                    if (selectedDate) setTempDate(selectedDate);
+                  }}
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* Signup Button */}
+        <TouchableOpacity
+          style={[styles.signupButton, { backgroundColor: colors.primary }]}
+          onPress={handleSignup}
+        >
+          <Text style={styles.signupButtonText}>Sign Up</Text>
+          <Ionicons name="arrow-forward" size={20} color="#FFF" />
+        </TouchableOpacity>
+
+        <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -390,93 +259,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xxl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  alreadyMemberBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    marginBottom: Spacing.md,
+  },
+  alreadyMemberText: {
+    color: '#FFF',
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
   },
   headerContent: {
     alignItems: 'center',
+    paddingBottom: Spacing.md,
   },
   headerTitle: {
     fontSize: FontSizes.xxl,
     fontWeight: '800',
     color: '#FFF',
+    marginTop: Spacing.md,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: FontSizes.md,
     color: 'rgba(255,255,255,0.85)',
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  stepContainer: {
+  scrollContent: {
     padding: Spacing.lg,
-    alignItems: 'center',
   },
-  title: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: FontSizes.md,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-  },
-  optionsContainer: {
-    width: '100%',
-    gap: Spacing.lg,
-  },
-  optionCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  optionGradient: {
-    padding: Spacing.xl,
-    alignItems: 'center',
-  },
-  optionTitle: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  optionDescription: {
-    fontSize: FontSizes.sm,
-    textAlign: 'center',
-  },
-  formContainer: {
-    width: '100%',
-    gap: Spacing.md,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderRadius: 16,
-    gap: Spacing.md,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: FontSizes.sm,
-  },
-  formScroll: {
-    width: '100%',
-  },
-  formGroup: {
+  inputGroup: {
     marginBottom: Spacing.lg,
   },
   label: {
@@ -488,82 +312,77 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: 12,
     fontSize: FontSizes.md,
+    borderWidth: 1.5,
   },
-  textArea: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    fontSize: FontSizes.md,
-    minHeight: 80,
-    textAlignVertical: 'top',
+  dobInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  genderButtons: {
+  genderRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  genderButton: {
+  genderOption: {
     flex: 1,
     padding: Spacing.md,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1.5,
     alignItems: 'center',
   },
-  genderButtonText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-  },
-  optionsList: {
-    gap: Spacing.sm,
-  },
-  optionItem: {
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  optionItemText: {
-    fontSize: FontSizes.md,
+  errorText: {
+    color: '#EF4444',
+    fontSize: FontSizes.xs,
+    marginTop: 4,
     fontWeight: '600',
-    textAlign: 'center',
   },
-  primaryButton: {
-    padding: Spacing.lg,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginTop: Spacing.md,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: FontSizes.md,
-    fontWeight: '800',
-  },
-  secondaryButton: {
-    padding: Spacing.lg,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-  },
-  secondaryButtonText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-  },
-  skipButton: {
-    marginVertical: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  skipText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  founderStoryButton: {
+  signupButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+    padding: Spacing.lg,
+    borderRadius: 16,
+    marginTop: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  founderStoryText: {
-    fontSize: FontSizes.sm,
+  signupButtonText: {
+    color: '#FFF',
+    fontSize: FontSizes.lg,
+    fontWeight: '800',
+  },
+  datePickerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  datePickerModal: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Spacing.xl,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  datePickerTitle: {
+    fontSize: FontSizes.md,
     fontWeight: '700',
-    textDecorationLine: 'underline',
+  },
+  datePickerCancel: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+  datePickerDone: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
   },
 });

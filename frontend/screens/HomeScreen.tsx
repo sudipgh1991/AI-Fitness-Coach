@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
+import { LineChart, BarChart } from 'react-native-chart-kit';
+import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -93,15 +94,19 @@ export default function HomeScreen({ navigation }: any) {
     }],
   };
 
-  const progressData = {
-    labels: ['Steps', 'Calories', 'Active Time'],
-    data: [
-      todayStats.steps / todayStats.stepsGoal,
-      todayStats.calories / todayStats.caloriesGoal,
-      todayStats.activeMinutes / todayStats.activeMinutesGoal,
-    ],
-    colors: [colors.primary, colors.secondary, colors.success],
-  };
+  // ── Health Score ────────────────────────────────────────
+  const dietScore    = Math.min((todayStats.calories / todayStats.caloriesGoal) * 40, 40);
+  const workoutScore = Math.min((todayStats.workoutsCompleted / 3) * 30, 30);
+  const waterScore   = Math.min((todayStats.water / todayStats.waterGoal) * 15, 15);
+  const stepsScore   = Math.min((todayStats.steps / todayStats.stepsGoal) * 15, 15);
+  const healthScore  = Math.round(dietScore + workoutScore + waterScore + stepsScore);
+
+  const gaugeColor =
+    healthScore >= 70 ? '#10B981' : healthScore >= 40 ? '#F59E0B' : '#EF4444';
+  const gaugeLabel =
+    healthScore >= 85 ? 'Excellent' : healthScore >= 70 ? 'Good' : healthScore >= 40 ? 'Fair' : 'Needs Work';
+
+  const gaugeSvgW = screenWidth - Spacing.lg * 2 - Spacing.md * 2;
 
   const chartConfig = {
     backgroundColor: colors.card,
@@ -192,7 +197,7 @@ export default function HomeScreen({ navigation }: any) {
               style={styles.menuButton}
               onPress={() => setSidebarVisible(true)}
             >
-              <Ionicons name="menu" size={28} color="#FFF" />
+              <Ionicons name="menu" size={24} color="#FFF" />
             </TouchableOpacity>
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
@@ -202,91 +207,140 @@ export default function HomeScreen({ navigation }: any) {
                 {t.motivationText}
               </Text>
             </View>
-            <View style={styles.streakContainer}>
-              <Ionicons name="flame" size={24} color="#FFD700" />
-              <Text style={styles.streakText}>{todayStats.streak}</Text>
-              <Text style={styles.streakLabel}>{t.dayStreak}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.callBtn}
+              onPress={() => navigation.navigate('CoachSelection')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="call" size={20} color="#FFF" />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
-        {/* Today's Goals - Ring Progress */}
-        <View style={styles.goalsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.todaysGoals}</Text>
-          <View style={[styles.modernChartCard, { backgroundColor: colors.card }]}>
-            <LinearGradient
-              colors={[colors.primary + '08', colors.card]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.goalsGradient}
-            >
-              <ProgressChart
-                data={progressData}
-                width={screenWidth - Spacing.lg * 2 - 32}
-                height={220}
-                strokeWidth={20}
-                radius={38}
-                chartConfig={{
-                  backgroundColor: colors.card,
-                  backgroundGradientFrom: colors.card,
-                  backgroundGradientTo: colors.card,
-                  color: (opacity = 1, index?: number) => {
-                    const chartColors = [colors.primary, colors.secondary, colors.success];
-                    return index !== undefined ? chartColors[index] : colors.primary;
-                  },
-                  labelColor: (opacity = 1) => colors.text,
-                }}
-                hideLegend={true}
-                style={{ marginVertical: Spacing.sm }}
-              />
-            </LinearGradient>
-            <View style={styles.progressLegend}>
-              <View style={styles.legendItem}>
-                <View style={styles.legendIconContainer}>
-                  <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-                  <Ionicons name="footsteps" size={16} color={colors.primary} style={styles.legendIcon} />
-                </View>
-                <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.steps}</Text>
-                  <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
-                    {todayStats.steps.toLocaleString()} / {todayStats.stepsGoal.toLocaleString()}
-                  </Text>
-                  <Text style={[styles.legendPercent, { color: colors.primary }]}>
-                    {Math.round((todayStats.steps / todayStats.stepsGoal) * 100)}%
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={styles.legendIconContainer}>
-                  <View style={[styles.legendDot, { backgroundColor: colors.secondary }]} />
-                  <Ionicons name="flame" size={16} color={colors.secondary} style={styles.legendIcon} />
-                </View>
-                <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.calories}</Text>
-                  <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
-                    {todayStats.calories} / {todayStats.caloriesGoal}
-                  </Text>
-                  <Text style={[styles.legendPercent, { color: colors.secondary }]}>
-                    {Math.round((todayStats.calories / todayStats.caloriesGoal) * 100)}%
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={styles.legendIconContainer}>
-                  <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
-                  <Ionicons name="timer" size={16} color={colors.success} style={styles.legendIcon} />
-                </View>
-                <View style={styles.legendTextContainer}>
-                  <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t.activeTime}</Text>
-                  <Text style={[styles.legendValue, { color: colors.text }]} numberOfLines={1}>
-                    {todayStats.activeMinutes} / {todayStats.activeMinutesGoal}
-                  </Text>
-                  <Text style={[styles.legendPercent, { color: colors.success }]}>
-                    {Math.round((todayStats.activeMinutes / todayStats.activeMinutesGoal) * 100)}%
-                  </Text>
-                </View>
+        {/* Health Score */}
+        <View style={styles.healthScoreSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Health Score</Text>
+          <View style={[styles.healthScoreCard, { backgroundColor: colors.card }]}>
+
+            {/* Speedometer Gauge — SVG contains ONLY arc + needle, zero text */}
+            {(() => {
+              // VH stops just below the pivot so no SVG space is wasted below the arc
+              const VW = 280, VH = 132;
+              const CX = 140, CY = 116;
+              const RO = 112, RI = 74;
+              const NEEDLE_R = 100;
+              const GAP_DEG = 4;
+              const svgH = gaugeSvgW * (VH / VW);
+
+              const pt = (r: number, deg: number) => ({
+                x: CX + r * Math.cos((deg * Math.PI) / 180),
+                y: CY + r * Math.sin((deg * Math.PI) / 180),
+              });
+
+              const seg = (ro: number, ri: number, startDeg: number, sweepDeg: number): string => {
+                if (sweepDeg <= 0) return '';
+                const e = startDeg + sweepDeg;
+                const os = pt(ro, startDeg); const oe = pt(ro, e);
+                const ie = pt(ri, e);        const is_ = pt(ri, startDeg);
+                const lg = sweepDeg > 180 ? 1 : 0;
+                return [
+                  `M ${os.x.toFixed(2)} ${os.y.toFixed(2)}`,
+                  `A ${ro} ${ro} 0 ${lg} 1 ${oe.x.toFixed(2)} ${oe.y.toFixed(2)}`,
+                  `L ${ie.x.toFixed(2)} ${ie.y.toFixed(2)}`,
+                  `A ${ri} ${ri} 0 ${lg} 0 ${is_.x.toFixed(2)} ${is_.y.toFixed(2)} Z`,
+                ].join(' ');
+              };
+
+              const segments = [
+                { pct: 0,  color: '#EF4444' },
+                { pct: 20, color: '#F97316' },
+                { pct: 40, color: '#EAB308' },
+                { pct: 60, color: '#84CC16' },
+                { pct: 80, color: '#22C55E' },
+              ];
+
+              const nd = 180 + (healthScore / 100) * 180;
+              const nTip   = pt(NEEDLE_R, nd);
+              const nWingL = pt(8, nd + 90);
+              const nWingR = pt(8, nd - 90);
+              const needlePath = [
+                `M ${nTip.x.toFixed(2)} ${nTip.y.toFixed(2)}`,
+                `L ${nWingL.x.toFixed(2)} ${nWingL.y.toFixed(2)}`,
+                `L ${nWingR.x.toFixed(2)} ${nWingR.y.toFixed(2)} Z`,
+              ].join(' ');
+
+              return (
+                <Svg width={gaugeSvgW} height={svgH} viewBox={`0 0 ${VW} ${VH}`} style={{ alignSelf: 'center' }}>
+                  {segments.map(({ pct, color }) => (
+                    <Path key={pct} d={seg(RO, RI, 180 + (pct / 100) * 180 + GAP_DEG / 2, 36 - GAP_DEG)} fill={color} />
+                  ))}
+                  {/* Inner fill — clipped at VH so card bg shows below */}
+                  <Circle cx={CX} cy={CY} r={RI - 1} fill={colors.card} />
+                  {/* Needle */}
+                  <Path d={needlePath} fill="#1C1C2E" />
+                  {/* Pivot */}
+                  <Circle cx={CX} cy={CY} r={14} fill="#1C1C2E" />
+                  <Circle cx={CX} cy={CY} r={6}  fill="white" />
+                  {/* End labels */}
+                  <SvgText x={14}  y={CY + 10} textAnchor="middle" fontSize={11} fill={colors.textSecondary}>0</SvgText>
+                  <SvgText x={266} y={CY + 10} textAnchor="middle" fontSize={11} fill={colors.textSecondary}>100</SvgText>
+                </Svg>
+              );
+            })()}
+
+            {/*
+              Score lives in a native React Native View that comes AFTER the SVG.
+              React Native stacks later siblings above earlier ones, so this is
+              always rendered above the SVG layer — overlap is structurally impossible.
+            */}
+            <View style={styles.gaugeScoreRow}>
+              <Text style={[styles.gaugeScoreNumber, { color: gaugeColor }]}>{healthScore}</Text>
+              <View style={[styles.gaugeLabelBadge, { backgroundColor: gaugeColor + '22' }]}>
+                <Text style={[styles.gaugeLabelText, { color: gaugeColor }]}>{gaugeLabel}</Text>
               </View>
             </View>
+
+            {/* Horizontal progress ring breakdown */}
+            <View style={[styles.gaugeDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.breakdownGrid}>
+              {([
+                { label: 'Diet',    score: dietScore,    max: 40, color: '#3B82F6', icon: 'restaurant-outline' },
+                { label: 'Workout', score: workoutScore, max: 30, color: '#8B5CF6', icon: 'barbell-outline' },
+                { label: 'Water',   score: waterScore,   max: 15, color: '#06B6D4', icon: 'water-outline' },
+                { label: 'Steps',   score: stepsScore,   max: 15, color: '#10B981', icon: 'walk-outline' },
+              ] as const).map(({ label, score, max, color, icon }) => {
+                const R = 26;
+                const CIRC = 2 * Math.PI * R;
+                const pct = Math.min(score / max, 1);
+                const filled = CIRC * pct;
+                const empty = CIRC - filled;
+                return (
+                  <View key={label} style={styles.breakdownCell}>
+                    <View style={styles.breakdownRingWrap}>
+                      <Svg width={64} height={64}>
+                        <Circle cx={32} cy={32} r={R} stroke={color + '28'} strokeWidth={6} fill="transparent" />
+                        {pct > 0 && (
+                          <Circle
+                            cx={32} cy={32} r={R}
+                            stroke={color} strokeWidth={6} fill="transparent"
+                            strokeDasharray={[filled, empty]}
+                            strokeLinecap="round"
+                            rotation={-90} originX={32} originY={32}
+                          />
+                        )}
+                      </Svg>
+                      <View style={styles.breakdownRingInner}>
+                        <Ionicons name={icon as any} size={15} color={color} />
+                        <Text style={[styles.breakdownRingScore, { color }]}>{Math.round(score)}</Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.breakdownCellLabel, { color: colors.text }]}>{label}</Text>
+                    <Text style={[styles.breakdownRingMax, { color: colors.textSecondary }]}>of {max}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
           </View>
         </View>
 
@@ -356,115 +410,6 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         )}
 
-        {/* Daily Summary Cards */}
-        <View style={styles.summarySection}>
-          <View style={styles.summaryGrid}>
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[
-                styles.summaryIcon, 
-                { backgroundColor: getHealthStatus('steps', todayStats.steps).color + '20' }
-              ]}>
-                <Ionicons 
-                  name="footsteps-outline" 
-                  size={24} 
-                  color={getHealthStatus('steps', todayStats.steps).color} 
-                />
-              </View>
-              <View style={styles.statusBadge}>
-                <Ionicons 
-                  name={getHealthStatus('steps', todayStats.steps).icon} 
-                  size={12} 
-                  color={getHealthStatus('steps', todayStats.steps).color} 
-                />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.steps.toLocaleString()}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t.stepsLabel}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[
-                styles.summaryIcon, 
-                { backgroundColor: getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color + '20' }
-              ]}>
-                <Ionicons 
-                  name="flame-outline" 
-                  size={24} 
-                  color={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color} 
-                />
-              </View>
-              <View style={styles.statusBadge}>
-                <Ionicons 
-                  name={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).icon} 
-                  size={12} 
-                  color={getHealthStatus('caloriesBurned', todayStats.caloriesBurned).color} 
-                />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.caloriesBurned}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t.calBurned}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[
-                styles.summaryIcon, 
-                { backgroundColor: getHealthStatus('water', todayStats.water, todayStats.waterGoal).color + '20' }
-              ]}>
-                <Ionicons 
-                  name="water-outline" 
-                  size={24} 
-                  color={getHealthStatus('water', todayStats.water, todayStats.waterGoal).color} 
-                />
-              </View>
-              <View style={styles.statusBadge}>
-                <Ionicons 
-                  name={getHealthStatus('water', todayStats.water, todayStats.waterGoal).icon} 
-                  size={12} 
-                  color={getHealthStatus('water', todayStats.water, todayStats.waterGoal).color} 
-                />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.water}/{todayStats.waterGoal}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t.glasses}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-              <View style={[
-                styles.summaryIcon, 
-                { backgroundColor: getHealthStatus('sleep', todayStats.sleep).color + '20' }
-              ]}>
-                <Ionicons 
-                  name="moon-outline" 
-                  size={24} 
-                  color={getHealthStatus('sleep', todayStats.sleep).color} 
-                />
-              </View>
-              <View style={styles.statusBadge}>
-                <Ionicons 
-                  name={getHealthStatus('sleep', todayStats.sleep).icon} 
-                  size={12} 
-                  color={getHealthStatus('sleep', todayStats.sleep).color} 
-                />
-              </View>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {todayStats.sleep}h
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t.sleep}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Quick Stats Grid */}
         <View style={styles.statsSection}>
           <View style={styles.statsGrid}>
@@ -485,20 +430,20 @@ export default function HomeScreen({ navigation }: any) {
               color={colors.secondary}
             />
             <StatCard
-              icon="timer"
-              title={t.activeTime}
-              value={todayStats.activeMinutes}
-              unit="min"
-              goal={todayStats.activeMinutesGoal}
-              color={colors.success}
-            />
-            <StatCard
-              icon="navigate"
-              title={t.distance}
-              value={todayStats.distance}
-              unit="km"
+              icon="water"
+              title={t.glasses}
+              value={`${todayStats.water}/${todayStats.waterGoal}`}
+              unit="glasses"
               goal={null}
               color={colors.info}
+            />
+            <StatCard
+              icon="moon"
+              title={t.sleep}
+              value={todayStats.sleep}
+              unit="h"
+              goal={todayStats.sleepGoal}
+              color={colors.success}
             />
           </View>
         </View>
@@ -690,54 +635,52 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.quickActions}</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.primary }]}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('WorkoutPlans')}
               activeOpacity={0.8}
             >
-              <View style={styles.iconCircle}>
-                <Ionicons name="barbell" size={28} color="#FFF" />
+              <View style={[styles.actionButtonInner, { backgroundColor: colors.primary }]}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="barbell" size={28} color="#FFF" />
+                </View>
+                <Text style={styles.actionText}>{t.workoutPlans}</Text>
               </View>
-              <Text style={styles.actionText}>{t.workoutPlans}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('Recipes')}
               activeOpacity={0.8}
             >
-              <View style={styles.iconCircle}>
-                <Ionicons name="restaurant" size={28} color="#FFF" />
+              <View style={[styles.actionButtonInner, { backgroundColor: colors.secondary }]}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="restaurant" size={28} color="#FFF" />
+                </View>
+                <Text style={styles.actionText}>{t.recipes}</Text>
               </View>
-              <Text style={styles.actionText}>{t.recipes}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.success }]}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('Goals')}
               activeOpacity={0.8}
             >
-              <View style={styles.iconCircle}>
-                <Ionicons name="trophy" size={28} color="#FFF" />
+              <View style={[styles.actionButtonInner, { backgroundColor: colors.success }]}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="trophy" size={28} color="#FFF" />
+                </View>
+                <Text style={styles.actionText}>{t.myGoals}</Text>
               </View>
-              <Text style={styles.actionText}>{t.myGoals}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.info }]}
-              onPress={() => navigation.navigate('HabitsAnalysis')}
-              activeOpacity={0.8}
-            >
-              <View style={styles.iconCircle}>
-                <Ionicons name="analytics" size={28} color="#FFF" />
-              </View>
-              <Text style={styles.actionText}>{t.habits}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#F59E0B' }]}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('FounderStory')}
               activeOpacity={0.8}
             >
-              <View style={styles.iconCircle}>
-                <Ionicons name="star" size={28} color="#FFF" />
+              <View style={[styles.actionButtonInner, { backgroundColor: '#F59E0B' }]}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="star" size={28} color="#FFF" />
+                </View>
+                <Text style={styles.actionText}>{t.successStories}</Text>
               </View>
-              <Text style={styles.actionText}>{t.successStories}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -760,8 +703,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerGradient: {
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     marginBottom: Spacing.lg,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -771,49 +714,41 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
   },
   menuButton: {
-    marginRight: Spacing.md,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   greetingContainer: {
     flex: 1,
-    marginRight: Spacing.sm,
+    alignItems: 'center',
   },
   greeting: {
     fontSize: FontSizes.xl,
-    fontWeight: '700',
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  motivationText: {
-    fontSize: FontSizes.md,
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '500',
-  },
-  streakContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 16,
-    minWidth: 80,
-    maxWidth: 120,
-  },
-  streakText: {
-    fontSize: 24,
     fontWeight: '800',
     color: '#FFF',
-    marginTop: 2,
+    marginBottom: 2,
+    textAlign: 'center',
   },
-  streakLabel: {
-    fontSize: FontSizes.xs,
-    color: 'rgba(255,255,255,0.9)',
-    fontWeight: '600',
+  motivationText: {
+    fontSize: FontSizes.sm,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  callBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   summarySection: {
     paddingHorizontal: Spacing.lg,
@@ -869,68 +804,92 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     fontWeight: '500',
   },
-  goalsSection: {
+  healthScoreSection: {
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
-  goalsGradient: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.sm,
+  healthScoreCard: {
+    borderRadius: 24,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  gaugeDivider: {
+    height: 1,
+    marginHorizontal: Spacing.sm,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+    opacity: 0.4,
+  },
+  gaugeScoreRow: {
     alignItems: 'center',
+    paddingTop: 2,
+    paddingBottom: Spacing.xs,
+    gap: 4,
+  },
+  gaugeScoreNumber: {
+    fontSize: 52,
+    fontWeight: '900',
+    lineHeight: 54,
+    letterSpacing: -2,
+  },
+  gaugeLabelBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  gaugeLabelText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  breakdownGrid: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.xs,
+  },
+  breakdownCell: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  breakdownRingWrap: {
+    position: 'relative',
+    width: 64,
+    height: 64,
+  },
+  breakdownRingInner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+  },
+  breakdownRingScore: {
+    fontSize: 13,
+    fontWeight: '900',
+    lineHeight: 14,
+  },
+  breakdownRingMax: {
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  breakdownCellLabel: {
+    fontSize: FontSizes.xs,
+    fontWeight: '700',
   },
   sectionTitle: {
     fontSize: FontSizes.xl,
     fontWeight: '800',
     letterSpacing: 0.5,
     marginBottom: Spacing.md,
-  },
-  progressLegend: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  legendIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-    width: 28,
-  },
-  legendDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  legendIcon: {
-    position: 'absolute',
-    left: 16,
-  },
-  legendTextContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  legendTitle: {
-    fontSize: FontSizes.xs,
-    fontWeight: '600',
-    minWidth: 70,
-  },
-  legendValue: {
-    fontSize: FontSizes.sm,
-    fontWeight: '700',
-    flex: 1,
-  },
-  legendPercent: {
-    fontSize: FontSizes.md,
-    fontWeight: '800',
-    minWidth: 45,
-    textAlign: 'right',
   },
   statsSection: {
     paddingHorizontal: Spacing.lg,
@@ -1063,11 +1022,14 @@ const styles = StyleSheet.create({
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: Spacing.md,
+    marginHorizontal: -Spacing.xs,
   },
   actionButton: {
-    width: '47.5%',
+    width: '50%',
+    paddingHorizontal: Spacing.xs,
+    paddingBottom: Spacing.md,
+  },
+  actionButtonInner: {
     paddingVertical: Spacing.xl,
     borderRadius: BorderRadius.xl,
     justifyContent: 'center',

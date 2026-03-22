@@ -97,8 +97,8 @@ export default function SelfAssessmentScreen({ navigation }: any) {
         completedAt: new Date().toISOString(),
       }));
 
-      // Navigate to coach selection
-      navigation.replace('CoachSelection');
+      // Navigate back to coach selection
+      navigation.goBack();
     } catch (error) {
       console.error('Error saving assessment data:', error);
       alert(t.error);
@@ -237,7 +237,7 @@ export default function SelfAssessmentScreen({ navigation }: any) {
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.replace('Onboarding')}
+          onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -18,7 +18,7 @@ import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
 import { User } from '../types';
 
 export default function VerifyOTPScreen({ route, navigation }: any) {
-  const { phoneNumber } = route.params;
+  const { phoneNumber, signupData } = route.params;
   const { colors } = useTheme();
   const { login } = useAuth();
   const { t } = useLanguage();
@@ -70,8 +70,8 @@ export default function VerifyOTPScreen({ route, navigation }: any) {
       // Mock user login
       const mockUser: User = {
         id: '1',
-        name: 'Fitness Enthusiast',
-        email: '',
+        name: signupData?.name || 'Fitness Enthusiast',
+        email: signupData?.email || '',
         phone: phoneNumber,
         isPremium: false,
         createdAt: new Date().toISOString(),

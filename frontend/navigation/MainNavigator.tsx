@@ -30,6 +30,8 @@ import WeeklyReviewScreen from '../screens/WeeklyReviewScreen';
 import ProgressDashboardScreen from '../screens/ProgressDashboardScreen';
 import AIInsightsScreen from '../screens/AIInsightsScreen';
 import FounderStoryScreen from '../screens/FounderStoryScreen';
+import SelfAssessmentScreen from '../screens/SelfAssessmentScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -51,6 +53,8 @@ function HomeStack() {
       <Stack.Screen name="ProgressDashboard" component={ProgressDashboardScreen} />
       <Stack.Screen name="AIInsights" component={AIInsightsScreen} />
       <Stack.Screen name="FounderStory" component={FounderStoryScreen} />
+      <Stack.Screen name="CoachSelection" component={CoachSelectionScreen} />
+      <Stack.Screen name="SelfAssessment" component={SelfAssessmentScreen} />
     </Stack.Navigator>
   );
 }
@@ -69,6 +73,7 @@ function ProfileStack() {
       <Stack.Screen name="ProgressDashboard" component={ProgressDashboardScreen} />
       <Stack.Screen name="WeeklyReview" component={WeeklyReviewScreen} />
       <Stack.Screen name="FounderStory" component={FounderStoryScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }

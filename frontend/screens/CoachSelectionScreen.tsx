@@ -5,23 +5,33 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  Modal,
+  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Spacing, FontSizes, BorderRadius } from '../constants/theme';
-
-const screenWidth = Dimensions.get('window').width;
 
 export default function CoachSelectionScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+
+  // Scheduling modal state
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [tempTime, setTempTime] = useState(new Date());
 
   const coachingStyles = [
     {
@@ -54,23 +64,46 @@ export default function CoachSelectionScreen({ navigation }: any) {
     },
   ];
 
-  const handleComplete = async () => {
+  const formatDate = (date: Date) =>
+    `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}/${date.getFullYear()}`;
+
+  const formatTime = (date: Date) => {
+    const h = date.getHours();
+    const m = date.getMinutes().toString().padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${((h % 12) || 12)}:${m} ${ampm}`;
+  };
+
+  const handleSaveCoachPrefs = async () => {
     try {
-      // Save coach preferences
       await AsyncStorage.setItem('coachGender', selectedGender || '');
       await AsyncStorage.setItem('coachStyle', selectedStyle || '');
-      
-      // Mark onboarding as completed
-      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-      
-      // Navigate to login screen
-      navigation.replace('Login');
-    } catch (error) {
-      console.error('Error saving coach preferences:', error);
-      // Still navigate even if save fails
-      navigation.replace('Login');
-    }
+    } catch (_) {}
   };
+
+  const handleStartJourney = async () => {
+    await handleSaveCoachPrefs();
+    setScheduleModalVisible(true);
+  };
+
+  const handleSubmitSchedule = () => {
+    const dateStr = formatDate(selectedDate);
+    const timeStr = formatTime(selectedTime);
+    setScheduleModalVisible(false);
+    // Navigate back to Home and show confirmation
+    navigation.navigate('HomeMain');
+    setTimeout(() => {
+      Alert.alert(
+        '✅ Live Consultation Confirmed',
+        `You will get the call on ${dateStr} at ${timeStr}.`,
+        [{ text: 'OK' }]
+      );
+    }, 300);
+  };
+
+  const minDate = new Date();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -81,11 +114,11 @@ export default function CoachSelectionScreen({ navigation }: any) {
         style={styles.header}
       >
         <TouchableOpacity
-          style={styles.skipButton}
-          onPress={() => navigation.replace('Login')}
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
         >
-          <Ionicons name="log-in" size={20} color="#FFF" />
-          <Text style={styles.skipButtonText}>{t.csAlreadyMemberText}</Text>
+          <Ionicons name="arrow-back" size={20} color="#FFF" />
+          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Ionicons name="people" size={48} color="#FFF" />
@@ -228,6 +261,7 @@ export default function CoachSelectionScreen({ navigation }: any) {
 
         {selectedGender && selectedStyle && (
           <View style={styles.previewSection}>
+            {/* Your Selection Preview */}
             <View style={[styles.previewCard, { backgroundColor: colors.card }]}>
               <LinearGradient
                 colors={[colors.primary + '20', colors.card]}
@@ -244,9 +278,46 @@ export default function CoachSelectionScreen({ navigation }: any) {
               </LinearGradient>
             </View>
 
+            {/* Self Assessment Card (Optional) */}
+            <View style={[styles.assessmentSection, { backgroundColor: colors.card }]}>
+              <LinearGradient
+                colors={[colors.secondary + '15', colors.card]}
+                style={styles.assessmentGradient}
+              >
+                <View style={styles.assessmentHeader}>
+                  <View style={[styles.assessmentIconBg, { backgroundColor: colors.secondary + '20' }]}>
+                    <Ionicons name="clipboard" size={28} color={colors.secondary} />
+                  </View>
+                  <View style={styles.assessmentHeaderText}>
+                    <Text style={[styles.assessmentTitle, { color: colors.text }]}>Self Assessment</Text>
+                    <Text style={[styles.assessmentOptional, { color: colors.secondary }]}>Optional</Text>
+                  </View>
+                </View>
+                <Text style={[styles.assessmentDesc, { color: colors.textSecondary }]}>
+                  Complete a detailed questionnaire to help your coach personalise your experience.
+                </Text>
+                <View style={styles.assessmentActions}>
+                  <TouchableOpacity
+                    style={[styles.assessmentFillBtn, { backgroundColor: colors.secondary }]}
+                    onPress={() => navigation.navigate('SelfAssessment')}
+                  >
+                    <Ionicons name="clipboard-outline" size={16} color="#FFF" />
+                    <Text style={styles.assessmentFillBtnText}>Fill Assessment</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.assessmentSkipBtn, { borderColor: colors.border }]}
+                    onPress={() => {/* just skip, button does nothing */ }}
+                  >
+                    <Text style={[styles.assessmentSkipBtnText, { color: colors.textSecondary }]}>Skip</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+
+            {/* Start My Journey Button */}
             <TouchableOpacity
               style={[styles.continueButton, { backgroundColor: colors.primary }]}
-              onPress={handleComplete}
+              onPress={handleStartJourney}
             >
               <Text style={styles.continueButtonText}>{t.csStartJourneyBtn}</Text>
               <Ionicons name="arrow-forward" size={20} color="#FFF" />
@@ -256,6 +327,145 @@ export default function CoachSelectionScreen({ navigation }: any) {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+
+      {/* Scheduling Modal */}
+      <Modal
+        visible={scheduleModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setScheduleModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHandle} />
+
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Schedule Live Consultation</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+              Choose your preferred date and time for the call
+            </Text>
+
+            {/* Date Picker Row */}
+            <View style={styles.pickerRow}>
+              <View style={[styles.pickerIconBg, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="calendar" size={22} color={colors.primary} />
+              </View>
+              <View style={styles.pickerInfo}>
+                <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Date</Text>
+                <Text style={[styles.pickerValue, { color: colors.text }]}>{formatDate(selectedDate)}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.changeBtn, { borderColor: colors.border }]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={[styles.changeBtnText, { color: colors.primary }]}>Change</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Time Picker Row */}
+            <View style={styles.pickerRow}>
+              <View style={[styles.pickerIconBg, { backgroundColor: colors.secondary + '15' }]}>
+                <Ionicons name="time" size={22} color={colors.secondary} />
+              </View>
+              <View style={styles.pickerInfo}>
+                <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Time</Text>
+                <Text style={[styles.pickerValue, { color: colors.text }]}>{formatTime(selectedTime)}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.changeBtn, { borderColor: colors.border }]}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={[styles.changeBtnText, { color: colors.primary }]}>Change</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Android Date Picker */}
+            {showDatePicker && Platform.OS === 'android' && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                minimumDate={minDate}
+                onChange={(event, date) => {
+                  setShowDatePicker(false);
+                  if (event.type !== 'dismissed' && date) setSelectedDate(date);
+                }}
+              />
+            )}
+
+            {/* Android Time Picker */}
+            {showTimePicker && Platform.OS === 'android' && (
+              <DateTimePicker
+                value={selectedTime}
+                mode="time"
+                display="default"
+                onChange={(event, date) => {
+                  setShowTimePicker(false);
+                  if (event.type !== 'dismissed' && date) setSelectedTime(date);
+                }}
+              />
+            )}
+
+            {/* iOS Date Picker (inline) */}
+            {showDatePicker && Platform.OS === 'ios' && (
+              <View style={[styles.iosPickerContainer, { backgroundColor: colors.card }]}>
+                <View style={styles.iosPickerHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>Select Date</Text>
+                  <TouchableOpacity onPress={() => { setSelectedDate(tempDate); setShowDatePicker(false); }}>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="spinner"
+                  minimumDate={minDate}
+                  onChange={(_, date) => { if (date) setTempDate(date); }}
+                />
+              </View>
+            )}
+
+            {/* iOS Time Picker (inline) */}
+            {showTimePicker && Platform.OS === 'ios' && (
+              <View style={[styles.iosPickerContainer, { backgroundColor: colors.card }]}>
+                <View style={styles.iosPickerHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>Select Time</Text>
+                  <TouchableOpacity onPress={() => { setSelectedTime(tempTime); setShowTimePicker(false); }}>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={selectedTime}
+                  mode="time"
+                  display="spinner"
+                  onChange={(_, date) => { if (date) setTempTime(date); }}
+                />
+              </View>
+            )}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalCancelBtn, { borderColor: colors.border }]}
+                onPress={() => setScheduleModalVisible(false)}
+              >
+                <Text style={[styles.modalCancelText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSubmitBtn, { backgroundColor: colors.primary }]}
+                onPress={handleSubmitSchedule}
+              >
+                <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+                <Text style={styles.modalSubmitText}>Confirm Booking</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -270,10 +480,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
-  skipButton: {
+  backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
     gap: Spacing.xs,
     marginBottom: Spacing.md,
     paddingHorizontal: Spacing.md,
@@ -281,7 +491,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
   },
-  skipButtonText: {
+  backButtonText: {
     color: '#FFF',
     fontSize: FontSizes.sm,
     fontWeight: '700',
@@ -401,6 +611,73 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     textAlign: 'center',
   },
+  assessmentSection: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  assessmentGradient: {
+    padding: Spacing.lg,
+  },
+  assessmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  assessmentIconBg: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assessmentHeaderText: {
+    flex: 1,
+  },
+  assessmentTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '800',
+  },
+  assessmentOptional: {
+    fontSize: FontSizes.xs,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  assessmentDesc: {
+    fontSize: FontSizes.sm,
+    marginBottom: Spacing.md,
+    lineHeight: 20,
+  },
+  assessmentActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  assessmentFillBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.sm,
+    borderRadius: 12,
+  },
+  assessmentFillBtnText: {
+    color: '#FFF',
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+  },
+  assessmentSkipBtn: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assessmentSkipBtnText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+  },
   continueButton: {
     flexDirection: 'row',
     padding: Spacing.lg,
@@ -417,6 +694,121 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#FFF',
     fontSize: FontSizes.lg,
+    fontWeight: '800',
+  },
+  // Scheduling Modal
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    alignSelf: 'center',
+    marginBottom: Spacing.lg,
+  },
+  modalTitle: {
+    fontSize: FontSizes.xl,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: FontSizes.sm,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  pickerIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerInfo: {
+    flex: 1,
+  },
+  pickerLabel: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  pickerValue: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+  },
+  changeBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 10,
+    borderWidth: 1.5,
+  },
+  changeBtnText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '700',
+  },
+  iosPickerContainer: {
+    borderRadius: 16,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  iosPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.08)',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: FontSizes.md,
+    fontWeight: '700',
+  },
+  modalSubmitBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    padding: Spacing.md,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  modalSubmitText: {
+    color: '#FFF',
+    fontSize: FontSizes.md,
     fontWeight: '800',
   },
 });

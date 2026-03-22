@@ -11,8 +11,6 @@ import VerifyOTPScreen from '../screens/VerifyOTPScreen';
 
 // Onboarding Screens
 import OnboardingScreen from '../screens/OnboardingScreen';
-import CoachSelectionScreen from '../screens/CoachSelectionScreen';
-import SelfAssessmentScreen from '../screens/SelfAssessmentScreen';
 import FounderStoryScreen from '../screens/FounderStoryScreen';
 
 // Main Navigator
@@ -80,9 +78,6 @@ export default function AppNavigator() {
           // Show onboarding first (before login)
           <>
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="FounderStory" component={FounderStoryScreen} />
-            <Stack.Screen name="SelfAssessment" component={SelfAssessmentScreen} />
-            <Stack.Screen name="CoachSelection" component={CoachSelectionScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="VerifyOTP" component={VerifyOTPScreen} />
           </>
